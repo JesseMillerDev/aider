@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import argparse
+import math
 import os
 import sys
 from pathlib import Path
@@ -17,6 +18,16 @@ from aider.args_formatter import (
 from aider.deprecated import add_deprecated_model_args
 
 from .dump import dump  # noqa: F401
+
+
+def positive_seconds(value):
+    try:
+        value = float(value)
+    except (TypeError, ValueError):
+        raise argparse.ArgumentTypeError("Expected a positive, finite number of seconds") from None
+    if not math.isfinite(value) or value <= 0:
+        raise argparse.ArgumentTypeError("Expected a positive, finite number of seconds")
+    return value
 
 
 def resolve_aiderignore_path(path_str, git_root=None):
@@ -244,6 +255,14 @@ def get_parser(default_config_files, git_root):
 
     ##########
     group = parser.add_argument_group("Repomap settings")
+    group.add_argument(
+        "--enable-lsp-graph", action=argparse.BooleanOptionalAction, default=False,
+        help="Use bounded language-server evidence to enrich repo-map edges (default: False)",
+    )
+    group.add_argument(
+        "--lsp-timeout", type=positive_seconds, default=2.0, metavar="SECONDS",
+        help="Cold-start/query and per-map semantic enrichment budget in seconds (default: 2.0)",
+    )
     group.add_argument(
         "--map-tokens",
         type=int,

@@ -994,6 +994,8 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
             summarizer=summarizer,
             analytics=analytics,
             map_refresh=args.map_refresh,
+            enable_lsp_graph=args.enable_lsp_graph,
+            lsp_timeout=args.lsp_timeout,
             cache_prompts=args.cache_prompts,
             map_mul_no_files=args.map_multiplier_no_files,
             num_cache_warming_pings=args.cache_keepalive_pings,

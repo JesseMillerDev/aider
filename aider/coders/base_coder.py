@@ -339,6 +339,9 @@ class Coder:
         file_watcher=None,
         auto_copy_context=False,
         auto_accept_architect=True,
+        enable_lsp_graph=False,
+        lsp_timeout=2.0,
+        lsp_bridge=None,
     ):
         # Fill in a dummy Analytics if needed, but it is never .enable()'d
         self.analytics = analytics if analytics is not None else Analytics()
@@ -506,6 +509,8 @@ class Coder:
                 max_inp_tokens,
                 map_mul_no_files=map_mul_no_files,
                 refresh=map_refresh,
+                **(dict(enable_lsp_graph=True, lsp_timeout=lsp_timeout, lsp_bridge=lsp_bridge)
+                   if enable_lsp_graph else {}),
             )
 
         self.summarizer = summarizer or ChatSummary(
@@ -1709,6 +1714,12 @@ class Coder:
     def __del__(self):
         """Cleanup when the Coder object is destroyed."""
         self.ok_to_warm_cache = False
+        repo_map = getattr(self, "repo_map", None)
+        if repo_map is not None:
+            try:
+                repo_map.close()
+            except Exception:
+                pass
 
     def add_assistant_reply_to_cur_messages(self):
         if self.partial_response_content:

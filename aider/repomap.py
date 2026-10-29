@@ -1,4 +1,5 @@
 import colorsys
+import hashlib
 import math
 import os
 import random
@@ -55,14 +56,23 @@ class RepoMap:
         max_context_window=None,
         map_mul_no_files=8,
         refresh="auto",
+        enable_lsp_graph=False,
+        lsp_timeout=2.0,
+        lsp_bridge=None,
     ):
         self.io = io
         self.verbose = verbose
         self.refresh = refresh
+        self.semantic_graph = None
 
         if not root:
             root = os.getcwd()
         self.root = root
+
+        if enable_lsp_graph:
+            from aider.lsp_graph import SemanticGraph
+
+            self.semantic_graph = SemanticGraph(root, timeout=lsp_timeout, bridge=lsp_bridge)
 
         self.load_tags_cache()
         self.cache_threshold = 0.95
@@ -236,6 +246,13 @@ class RepoMap:
         if file_mtime is None:
             return []
 
+        content_hash = None
+        if self.semantic_graph:
+            try:
+                content_hash = hashlib.sha256(Path(fname).read_bytes()).hexdigest()
+            except OSError:
+                return []
+
         cache_key = fname
         try:
             val = self.TAGS_CACHE.get(cache_key)  # Issue #1308
@@ -243,7 +260,8 @@ class RepoMap:
             self.tags_cache_error(e)
             val = self.TAGS_CACHE.get(cache_key)
 
-        if val is not None and val.get("mtime") == file_mtime:
+        if (val is not None and val.get("mtime") == file_mtime
+                and (not self.semantic_graph or val.get("lsp_content_hash") == content_hash)):
             try:
                 return self.TAGS_CACHE[cache_key]["data"]
             except SQLITE_ERRORS as e:
@@ -255,11 +273,13 @@ class RepoMap:
 
         # Update the cache
         try:
-            self.TAGS_CACHE[cache_key] = {"mtime": file_mtime, "data": data}
+            self.TAGS_CACHE[cache_key] = {"mtime": file_mtime, "data": data,
+                                          **({"lsp_content_hash": content_hash} if self.semantic_graph else {})}
             self.save_tags_cache()
         except SQLITE_ERRORS as e:
             self.tags_cache_error(e)
-            self.TAGS_CACHE[cache_key] = {"mtime": file_mtime, "data": data}
+            self.TAGS_CACHE[cache_key] = {"mtime": file_mtime, "data": data,
+                                          **({"lsp_content_hash": content_hash} if self.semantic_graph else {})}
 
         return data
 
@@ -361,6 +381,41 @@ class RepoMap:
                 kind="ref",
                 line=-1,
             )
+
+    def get_reference_positions(self, fname, rel_fname):
+        """Sidecar UTF-16 call sites; the existing Tag tuple/cache format stays unchanged."""
+        result = defaultdict(set)
+        lang = filename_to_lang(fname)
+        if not lang:
+            return {}
+        try:
+            query_file = get_scm_fname(lang)
+            if not query_file.exists():
+                return {}
+            code = self.io.read_text(fname)
+            if not code:
+                return {}
+            encoded = code.encode("utf-8")
+            lines = encoded.split(b"\n")
+            tree = get_parser(lang).parse(encoded)
+            captures = self._run_captures(Query(get_language(lang), query_file.read_text()), tree.root_node)
+            for capture, nodes in captures.items():
+                if not capture.startswith("name.reference."):
+                    continue
+                for node in nodes:
+                    row, byte_col = node.start_point
+                    col = len(lines[row][:byte_col].decode("utf-8").encode("utf-16-le")) // 2
+                    result[node.text.decode("utf-8")].add((row, col))
+        except Exception:
+            return {}
+        return {name: sorted(sites) for name, sites in result.items()}
+
+    def close(self):
+        if self.semantic_graph:
+            self.semantic_graph.close()
+        cache = getattr(self, "TAGS_CACHE", None)
+        if cache is not None and hasattr(cache, "close"):
+            cache.close()
 
     def get_ranked_tags(
         self, chat_fnames, other_fnames, mentioned_fnames, mentioned_idents, progress=None
@@ -467,6 +522,12 @@ class RepoMap:
 
         idents = set(defines.keys()).intersection(set(references.keys()))
 
+        if self.semantic_graph:
+            self.semantic_graph.prepare(
+                set(chat_fnames) | set(other_fnames), defines, references, chat_fnames,
+                mentioned_fnames, self.get_reference_positions,
+            )
+
         G = nx.MultiDiGraph()
 
         # Add a small self-edge for every definition that has no references
@@ -507,6 +568,9 @@ class RepoMap:
                     use_mul = mul
                     if referencer in chat_rel_fnames:
                         use_mul *= 50
+
+                    if self.semantic_graph:
+                        use_mul *= self.semantic_graph.multiplier(referencer, definer, ident)
 
                     # scale down so high freq (low value) mentions don't dominate
                     num_refs = math.sqrt(num_refs)
@@ -582,6 +646,11 @@ class RepoMap:
         mentioned_idents=None,
         force_refresh=False,
     ):
+        # Auto maps may gain semantic evidence while a server finishes indexing, or lose
+        # it after dependency edits. Keep explicit files/manual refresh policies intact.
+        if self.semantic_graph and self.refresh == "auto":
+            force_refresh = True
+
         # Create a cache key
         cache_key = [
             tuple(sorted(chat_fnames)) if chat_fnames else None,

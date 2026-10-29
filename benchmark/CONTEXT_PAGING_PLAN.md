@@ -3,9 +3,12 @@
 Upstream: `Aider-AI/aider`, commit `5dc9490bb35f9729ef2c95d00a19ccd30c26339c`.
 Fork: <https://github.com/JesseMillerDev/aider>.
 
-Subscription inference is now available through the shared ChatGPT transport integration;
-see [ChatGPT subscription setup](CHATGPT_SUBSCRIPTION.md). The task-execution/telemetry runner
-and LSP/paging treatment remain separate upcoming increments.
+Subscription inference is available through the shared ChatGPT transport integration;
+see [ChatGPT subscription setup](CHATGPT_SUBSCRIPTION.md). The isolated execution/telemetry
+runner has completed the [50-task control baseline](baselines/README.md).
+
+Milestone 1's default-off LSP graph is now implemented; see [implementation and verification](LSP_GRAPH.md).
+Context paging, navigation, trace weighting and edit-diagnostic reflection remain upcoming work.
 
 ## Assessment of prompt.md
 
