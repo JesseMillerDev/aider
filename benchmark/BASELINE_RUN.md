@@ -7,6 +7,10 @@ Its task fingerprint is `cb366de5c8f2dfd14dc1aef20043511304be9e1f40b808bc125b196
 
 ## Current run
 
+The run is complete. Its fixed comparison target, including token totals and per-task metrics,
+is [recorded under baselines/](baselines/README.md). Use that versioned record for the improved
+version; keep treatment results separate.
+
 Experiment: `81472973655c74441877`.
 Artifacts: `benchmark/results/baseline-50/` (ignored by Git).
 
