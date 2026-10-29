@@ -1,0 +1,2 @@
+# 5.x expects an image column absent from the pinned original Lite snapshot.
+swebench==4.1.0

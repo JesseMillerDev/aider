@@ -17,3 +17,13 @@ aider/_version.py
 .gitattributes
 tmp.benchmarks/
 .docker_bash_history
+
+# Context-paging benchmark artifacts (oracle labels must never enter agent inputs).
+benchmark/.cache/
+benchmark/results/
+benchmark/oracle/
+benchmark/subset*.json
+baseline-test.log
+logs/run_evaluation/
+logs/evaluation/
+logs/build_images/

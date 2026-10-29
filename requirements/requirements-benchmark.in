@@ -1,0 +1,5 @@
+# Existing runtime dependencies plus this file support the offline benchmark tools.
+pyarrow
+scipy
+pytest
+pytest-env
