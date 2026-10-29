@@ -30,6 +30,7 @@ aider = "aider.main:main"
 dependencies = { file = "requirements.txt" }
 
 [tool.setuptools.dynamic.optional-dependencies]
+chatgpt = { file = ["requirements/requirements-chatgpt.txt"] }
 dev = { file = "requirements/requirements-dev.txt" }
 help = { file = "requirements/requirements-help.txt" }
 browser = { file = "requirements/requirements-browser.txt" }

@@ -1,0 +1,2 @@
+# Optional cryptographic ID-token verification for Sign in with ChatGPT.
+PyJWT[crypto]

@@ -79,6 +79,11 @@ class LiteLLMExceptions:
             ex = getattr(litellm, var)
             self.exceptions[ex] = self.exception_info[var]
 
+        from aider.chatgpt_errors import ChatGPTError
+
+        # Quota/consent errors must stop rather than retrying or switching billing routes.
+        self.exceptions[ChatGPTError] = ExInfo("ChatGPTError", False, None)
+
     def exceptions_tuple(self):
         return tuple(self.exceptions)
 

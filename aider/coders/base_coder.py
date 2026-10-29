@@ -31,6 +31,7 @@ from rich.console import Console
 from aider import __version__, models, prompts, urls, utils
 from aider.analytics import Analytics
 from aider.commands import Commands
+from aider.chatgpt_errors import ChatGPTError
 from aider.exceptions import LiteLLMExceptions
 from aider.history import ChatSummary
 from aider.io import ConfirmGroup, InputOutput
@@ -1338,6 +1339,8 @@ class Coder:
         return chunks
 
     def warm_cache(self, chunks):
+        if getattr(self.main_model, "billing_mode", None) == "chatgpt_subscription":
+            return  # Subscription transport does not issue background inference pings.
         if not self.add_cache_headers:
             return
         if not self.num_cache_warming_pings:
@@ -1458,6 +1461,14 @@ class Coder:
                 try:
                     yield from self.send(messages, functions=self.functions)
                     break
+                except ChatGPTError as err:
+                    # A complete SSE response is required before accepting subscription edits.
+                    self.partial_response_content = ""
+                    self.partial_response_function_call = {}
+                    self.multi_response_content = ""
+                    self.io.tool_error(str(err))
+                    self.event("message_send_exception", exception=str(err))
+                    return
                 except litellm_ex.exceptions_tuple() as err:
                     ex_info = litellm_ex.get_ex_info(err)
 
@@ -2028,6 +2039,11 @@ class Coder:
             tokens_report += f", {format_tokens(cache_hit_tokens)} cache hit"
         tokens_report += f", {format_tokens(self.message_tokens_received)} received."
 
+        if getattr(self.main_model, "billing_mode", None) == "chatgpt_subscription":
+            self.total_cost_usd = None
+            self.usage_report = tokens_report + " Using ChatGPT plan; API dollar cost unavailable."
+            return
+
         if not self.main_model.info.get("input_cost_per_token"):
             self.usage_report = tokens_report
             return
@@ -2117,8 +2133,8 @@ class Coder:
             prompt_tokens=prompt_tokens,
             completion_tokens=completion_tokens,
             total_tokens=prompt_tokens + completion_tokens,
-            cost=self.message_cost,
-            total_cost=self.total_cost,
+            cost=None if getattr(self.main_model, "billing_mode", None) == "chatgpt_subscription" else self.message_cost,
+            total_cost=None if getattr(self.main_model, "billing_mode", None) == "chatgpt_subscription" else self.total_cost,
         )
 
         self.message_cost = 0.0

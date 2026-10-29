@@ -521,15 +521,20 @@ class Commands:
         cost_pad = " " * cost_width
         total = 0
         total_cost = 0.0
+        subscription = getattr(self.coder.main_model, "billing_mode", None) == "chatgpt_subscription"
         for tk, msg, tip in res:
             total += tk
             cost = tk * (self.coder.main_model.info.get("input_cost_per_token") or 0)
             total_cost += cost
             msg = msg.ljust(col_width)
-            self.io.tool_output(f"${cost:7.4f} {fmt(tk)} {msg} {tip}")  # noqa: E231
+            cost_label = "plan     " if subscription else f"${cost:7.4f} "  # noqa: E231
+            self.io.tool_output(f"{cost_label}{fmt(tk)} {msg} {tip}")
 
         self.io.tool_output("=" * (width + cost_width + 1))
-        self.io.tool_output(f"${total_cost:7.4f} {fmt(total)} tokens total")  # noqa: E231
+        total_label = "plan     " if subscription else f"${total_cost:7.4f} "  # noqa: E231
+        self.io.tool_output(f"{total_label}{fmt(total)} tokens total")
+        if subscription:
+            self.io.tool_output("Using ChatGPT plan; API dollar cost unavailable. Manage usage: https://chatgpt.com/settings/usage")
 
         limit = self.coder.main_model.info.get("max_input_tokens") or 0
         if not limit:

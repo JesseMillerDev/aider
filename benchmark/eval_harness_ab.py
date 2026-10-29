@@ -19,15 +19,22 @@ def git(*args):
 
 
 def build_plan(subset, model, control_revision, treatment_revision, seed=42,
-               max_turns=25, max_cost_usd=3.0, source_fingerprint=None, environment=None):
+               max_turns=25, max_cost_usd=None, source_fingerprint=None, environment=None):
     tasks = validate_subset(subset)
-    if not model.strip() or max_turns <= 0 or not 0 < max_cost_usd < float("inf"):
+    subscription = model.startswith("chatgpt/")
+    if subscription and max_cost_usd is not None:
+        raise ValueError("ChatGPT subscription usage cannot be capped by an API dollar budget; use turn limits and ChatGPT usage settings")
+    if not subscription and max_cost_usd is None:
+        max_cost_usd = 3.0
+    if (not model.strip() or max_turns <= 0
+            or (max_cost_usd is not None and not 0 < max_cost_usd < float("inf"))):
         raise ValueError("Model and positive finite budgets are required")
     plan = {
         "schema_version": SCHEMA_VERSION,
         "status": "planned_only",
         "model": model,
-        "temperature": 0,
+        "temperature": None if subscription else 0,
+        "billing_mode": "chatgpt_subscription" if subscription else "api",
         "seed": seed,
         "dataset_source": subset.get("source"),
         "tasks_sha256": subset["tasks_sha256"],
@@ -101,10 +108,12 @@ def main(argv=None):
     parser.add_argument("--treatment-revision", default="HEAD")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--max-turns", type=int, default=25)
-    parser.add_argument("--max-cost-usd", type=float, default=3.0)
+    parser.add_argument("--max-cost-usd", type=float, help="API billing only; defaults to 3.00")
     parser.add_argument("--output", type=Path, default=Path("benchmark/results/manifest.json"))
     args = parser.parse_args(argv)
     try:
+        if args.model.startswith("chatgpt/") and args.control_revision == UPSTREAM_REVISION:
+            raise ValueError("Choose --control-revision with the shared ChatGPT transport shim; unmodified upstream cannot authenticate this route")
         control = git("rev-parse", "--verify", f"{args.control_revision}^{{commit}}").decode()
         treatment = git("rev-parse", "--verify", f"{args.treatment_revision}^{{commit}}").decode()
         plan = build_plan(read_json(args.instances), args.model, control, treatment, args.seed,

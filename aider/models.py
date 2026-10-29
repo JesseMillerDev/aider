@@ -335,6 +335,7 @@ class Model(ModelSettings):
 
         self.name = model
         self.verbose = verbose
+        self.billing_mode = "chatgpt_subscription" if model.startswith("chatgpt/") else "api"
 
         self.max_chat_history_tokens = 1024
         self.weak_model = None
@@ -369,6 +370,15 @@ class Model(ModelSettings):
             self.get_editor_model(editor_model, editor_edit_format)
 
     def get_model_info(self, model):
+        if model.startswith("chatgpt/"):
+            from aider.chatgpt_transport import SUPPORTED_MODEL
+
+            if model != "chatgpt/" + SUPPORTED_MODEL:
+                raise ValueError(f"ChatGPT subscription support currently requires chatgpt/{SUPPORTED_MODEL}")
+            return dict(max_input_tokens=922000, max_output_tokens=128000,
+                        input_cost_per_token=None, output_cost_per_token=None,
+                        supports_vision=True, supports_function_calling=False,
+                        litellm_provider="chatgpt_subscription", mode="chat")
         return model_info_manager.get_model_info(model)
 
     def _copy_fields(self, source):
@@ -435,6 +445,15 @@ class Model(ModelSettings):
                 self.accepts_settings.append("reasoning_effort")
 
     def apply_generic_model_settings(self, model):
+        if model.startswith("chatgpt/"):
+            self.edit_format = "diff"
+            self.use_repo_map = True
+            self.use_temperature = False
+            self.cache_control = False
+            self.caches_by_default = False
+            if "reasoning_effort" not in self.accepts_settings:
+                self.accepts_settings.append("reasoning_effort")
+            return
         if "/o3-mini" in model:
             self.edit_format = "diff"
             self.use_repo_map = True
@@ -645,9 +664,17 @@ class Model(ModelSettings):
         return self.editor_model
 
     def tokenizer(self, text):
+        if self.billing_mode == "chatgpt_subscription":
+            import tiktoken
+
+            return tiktoken.get_encoding("o200k_base").encode(text, disallowed_special=())
         return litellm.encode(model=self.name, text=text)
 
     def token_count(self, messages):
+        if self.billing_mode == "chatgpt_subscription":
+            # A local context-size estimate; actual provider usage comes from response.completed.
+            text = messages if isinstance(messages, str) else json.dumps(messages)
+            return len(self.tokenizer(text)) + (4 * len(messages) if isinstance(messages, list) else 0)
         if type(messages) is list:
             try:
                 return litellm.token_counter(model=self.name, messages=messages)
@@ -741,6 +768,14 @@ class Model(ModelSettings):
             return dict(keys_in_environment=[var], missing_keys=[])
 
     def validate_environment(self):
+        if self.billing_mode == "chatgpt_subscription":
+            from aider.chatgpt_auth import ChatGPTAuth
+
+            status = ChatGPTAuth().status()
+            connected = any(profile["active"] and profile["plan_enabled"] for profile in status["profiles"])
+            return dict(keys_in_environment=connected, missing_keys=[] if connected else [
+                "ChatGPT sign-in: python -m aider.chatgpt_auth login"
+            ])
         res = self.fast_validate_environment()
         if res:
             return res
@@ -983,6 +1018,14 @@ class Model(ModelSettings):
             os.environ[openai_api_key] = token
 
     def send_completion(self, messages, functions, stream, temperature=None):
+        if self.billing_mode == "chatgpt_subscription":
+            from aider.chatgpt_transport import ChatGPTTransport
+
+            if not hasattr(self, "_chatgpt_transport"):
+                self._chatgpt_transport = ChatGPTTransport(timeout=request_timeout or 600)
+            return self._chatgpt_transport.send_completion(
+                self.name.removeprefix("chatgpt/"), messages, functions, stream, self.extra_params
+            )
         if os.environ.get("AIDER_SANITY_CHECK_TURNS"):
             sanity_check_messages(messages)
 

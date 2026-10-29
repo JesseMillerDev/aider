@@ -3,6 +3,10 @@
 Upstream: `Aider-AI/aider`, commit `5dc9490bb35f9729ef2c95d00a19ccd30c26339c`.
 Fork: <https://github.com/JesseMillerDev/aider>.
 
+Subscription inference is now available through the shared ChatGPT transport integration;
+see [ChatGPT subscription setup](CHATGPT_SUBSCRIPTION.md). The task-execution/telemetry runner
+and LSP/paging treatment remain separate upcoming increments.
+
 ## Assessment of prompt.md
 
 The proposed experiment is worth building. Its strongest idea is measuring localization and

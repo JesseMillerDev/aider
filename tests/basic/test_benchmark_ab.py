@@ -169,6 +169,27 @@ def test_unsafe_id_and_nonfinite_budget_rejected():
         build_plan(subset, "model", "a", "b", max_cost_usd=float("nan"))
 
 
+def test_subscription_manifest_has_no_api_cost_cap_or_temperature(manifest):
+    subset = {"schema_version": 1, "tasks": manifest["tasks"], "tasks_sha256": manifest["tasks_sha256"]}
+    plan = build_plan(subset, "chatgpt/gpt-6.1-sol", "shared-transport", "treatment")
+    assert plan["billing_mode"] == "chatgpt_subscription"
+    assert plan["temperature"] is None
+    assert plan["budget_per_task_per_arm"] == {"max_turns": 25, "max_cost_usd": None}
+    with pytest.raises(ValueError, match="dollar budget"):
+        build_plan(subset, "chatgpt/gpt-6.1-sol", "control", "treatment", max_cost_usd=3)
+
+
+def test_subscription_planner_requires_shared_control_transport(tmp_path):
+    source = tmp_path / "subset.json"
+    subset, _ = build_subset(dataset(), 2, repos=("owner/one",))
+    write_json(source, subset)
+    with pytest.raises(SystemExit) as error:
+        plan_main(["--instances", str(source), "--model", "chatgpt/gpt-6.1-sol",
+                   "--output", str(tmp_path / "manifest.json")])
+    assert error.value.code == 2
+    assert not (tmp_path / "manifest.json").exists()
+
+
 def test_analysis_and_engineering_thresholds(manifest, results):
     pairs = load_pairs(manifest, results)
     assert all(a["cache_hit_ratio"] == .5 for a, _ in pairs)
