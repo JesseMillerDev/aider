@@ -387,6 +387,7 @@ def result_record(
         "peak_l1_tokens": telemetry["peak_l1_tokens"],
         "peak_l2_tokens": telemetry["peak_l2_tokens"],
         **({"lsp": telemetry["lsp"]} if telemetry.get("lsp") is not None else {}),
+        **({"pager": telemetry["pager"]} if telemetry.get("pager") is not None else {}),
         **(
             {"elapsed_seconds": telemetry["elapsed_seconds"]}
             if "elapsed_seconds" in telemetry
@@ -417,10 +418,11 @@ def progress_report(manifest, output):
     }
     atomic_json(output / "progress.json", summary)
     treatment = bool(manifest.get("features"))
+    treatment_label = manifest.get("treatment_label", "LSP-only treatment")
     (
         output / ("treatment_report.md" if treatment else "baseline_report.md")
     ).write_text(
-        f"# GPT-6.1 Sol {'LSP-only treatment' if treatment else 'baseline'}\n\nExperiment `{manifest['experiment_id']}`.\n\n"
+        f"# GPT-6.1 Sol {treatment_label if treatment else 'baseline'}\n\nExperiment `{manifest['experiment_id']}`.\n\n"
         f"Completed: {len(complete)}/{len(manifest['tasks'])}; resolved: {resolved}; infrastructure errors: {len(failures)}.\n\n"
         + (
             f"Pass@1: {100 * summary['pass_at_1']:.1f}%.\n"

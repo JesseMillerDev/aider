@@ -1,0 +1,6 @@
+ARG BASE_IMAGE=better-aider-baseline:8400741
+FROM ${BASE_IMAGE}
+USER root
+COPY aider /app/aider
+COPY benchmark /app/benchmark
+USER 65532:65532

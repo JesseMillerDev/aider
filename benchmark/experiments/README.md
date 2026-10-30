@@ -1,5 +1,8 @@
 # Milestone measurements
 
+The [idle-only paging treatment](../PAGER_RUN.md) is running separately with LSP disabled
+and no size caps. Its result will be recorded after all fifty tasks are graded.
+
 Keep the [frozen control](../baselines/README.md) unchanged and record each treatment
 separately. These comparisons use the same 50 task IDs and common model/budget settings;
 they are historical controls, not interleaved randomized experiments.

@@ -269,3 +269,37 @@ def test_comparison_refuses_incomplete_or_changed_predictions(
     with pytest.raises((ValueError, FileNotFoundError)):
         comparison.compare(output)
     assert not (output / "comparison_report.md").exists()
+
+
+def test_paging_comparison_records_a_separate_treatment_without_overwriting_lsp(
+    tmp_path, monkeypatch
+):
+    from benchmark.ab_support import read_json
+    from benchmark.run_pager_benchmark import ARM as pager_arm
+
+    comparison, output = comparison_fixture(tmp_path, monkeypatch)
+    manifest = read_json(output / "run_manifest.json")
+    manifest.update(kind="paging_only_treatment", arm=pager_arm)
+    atomic_json(output / "run_manifest.json", manifest)
+    prior = tmp_path / "benchmark/experiments/lsp-graph-50.json"
+    atomic_json(prior, {"experiment_id": "previous-lsp", "preserve": True})
+    before = prior.read_bytes()
+    for task in manifest["tasks"]:
+        path = output / ARM / (task["instance_id"] + ".json")
+        row = read_json(path)
+        row["arm"] = pager_arm
+        row.pop("lsp")
+        row["pager"] = {
+            "enabled": True,
+            "stats": {"demotions": 1, "preloads": 2},
+            "request_contexts": [{"l2_files": ["b.py"]}],
+        }
+        atomic_json(output / pager_arm / path.name, row)
+        path.unlink()
+    summary = comparison.compare(output)
+    assert summary["pager_totals"]["demotions"] == 50
+    assert summary["tasks_sent_l2_context"] == 50
+    assert prior.read_bytes() == before
+    assert (tmp_path / "benchmark/experiments/pager-idle-50.json").exists()
+    report = (output / "comparison_report.md").read_text(encoding="utf-8")
+    assert "Idle-only paging" in report and "LSP was disabled" in report

@@ -126,6 +126,6 @@ This measures source compression only. It does not establish whole-conversation 
 savings or improved resolution. Preview measurements are under the ignored
 `benchmark/.cache/context-pager-compression.json`.
 
-No model inference or SWE-bench treatment was run for this implementation. The next
-evaluation should isolate paging with LSP disabled before combining the features; the
-historical LSP treatment used a different, explicit timeout.
+Implementation verification made no inference requests. The separate
+[fifty-task paging run](PAGER_RUN.md) now isolates idle-only paging with LSP disabled
+and no size caps. The historical LSP treatment and its explicit timeout are preserved.

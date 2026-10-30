@@ -1,4 +1,4 @@
-"""Compare a complete LSP-only treatment against the immutable historical control."""
+"""Compare complete LSP-only or paging-only treatments with the immutable control."""
 
 import argparse
 import hashlib
@@ -16,6 +16,8 @@ from benchmark.run_lsp_benchmark import ARM, BASELINE
 def compare(output):
     output = Path(output)
     manifest = read_json(output / "run_manifest.json")
+    paging = manifest.get("kind") == "paging_only_treatment"
+    arm = manifest.get("arm", ARM)
     baseline = read_json(BASELINE)
     if hashlib.sha256(BASELINE.read_bytes()).hexdigest() != manifest["baseline_sha256"]:
         raise ValueError("Frozen baseline changed during the treatment")
@@ -23,16 +25,16 @@ def compare(output):
         raise ValueError("Treatment task identity differs from baseline")
     control = {row["instance_id"]: row for row in baseline["instances"]}
     pairs, records = [], []
-    semantic, bridge = Counter(), Counter()
+    semantic, bridge, pager_totals = Counter(), Counter(), Counter()
     for task in manifest["tasks"]:
         key = task["instance_id"]
-        path = output / ARM / (key + ".json")
+        path = output / arm / (key + ".json")
         row = read_json(path)
         if (
             row.get("status") != "completed"
             or type(row.get("resolved")) is not bool
             or row.get("experiment_id") != manifest["experiment_id"]
-            or row.get("arm") != ARM
+            or row.get("arm") != arm
             or row.get("repo") != task["repo"]
             or control[key]["base_commit"] != task["base_commit"]
         ):
@@ -54,8 +56,24 @@ def compare(output):
         ):
             raise ValueError(f"Missing official grading provenance: {key}")
         pairs.append((control[key], row))
-        semantic.update(row["lsp"]["totals"])
-        bridge.update(row["lsp"]["bridge"])
+        if paging:
+            if not row.get("pager", {}).get("enabled") or row.get("lsp"):
+                raise ValueError(f"Paging-only treatment was not active: {key}")
+            pager_totals.update(
+                {
+                    name: row["pager"]["stats"].get(name, 0)
+                    for name in (
+                        "demotions",
+                        "preloads",
+                        "promotions",
+                        "full_file_reloads",
+                        "budget_overflows",
+                    )
+                }
+            )
+        else:
+            semantic.update(row["lsp"]["totals"])
+            bridge.update(row["lsp"]["bridge"])
         records.append(
             {
                 **row,
@@ -96,11 +114,32 @@ def compare(output):
         "cached_input_tokens": total("cached_input_tokens"),
         "total_turns": sum(row["total_turns"] for row in records),
         "total_cost_usd": None,
-        "lsp_totals": dict(semantic),
-        "lsp_bridge": dict(bridge),
+        **(
+            {
+                "pager_totals": dict(pager_totals),
+                "tasks_with_demotions": sum(
+                    row["pager"]["stats"].get("demotions", 0) > 0 for row in records
+                ),
+                "tasks_sent_l2_context": sum(
+                    any(
+                        request["l2_files"]
+                        for request in row["pager"]["request_contexts"]
+                    )
+                    for row in records
+                ),
+            }
+            if paging
+            else {"lsp_totals": dict(semantic), "lsp_bridge": dict(bridge)}
+        ),
     }
     paired_report = report(manifest, pairs).replace(
-        "# Paired A/B comparison", "# LSP-only treatment versus historical control", 1
+        "# Paired A/B comparison",
+        (
+            "# Idle-only paging versus historical control"
+            if paging
+            else "# LSP-only treatment versus historical control"
+        ),
+        1,
     )
     additions = [
         "",
@@ -117,6 +156,13 @@ def compare(output):
         "This is a historical comparison, not randomized/interleaved. Model drift, LSP timing and inference variability may affect differences.",
         "Exploratory p-values do not remove those confounders. No fresh holdout tasks have been evaluated.",
     ]
+    if paging:
+        additions[5:8] = [
+            f"Paging: {pager_totals['demotions']} demotions, {pager_totals['preloads']} preloads, "
+            f"{pager_totals['full_file_reloads']} full-file reloads; {summary['tasks_with_demotions']}/50 tasks had a demotion.",
+            f"L2 interfaces were sent on {summary['tasks_sent_l2_context']}/50 tasks. LSP was disabled; all size caps were unset.",
+            "Pager counters include repeated operations; short tasks can finish before the idle TTL expires.",
+        ]
     if combined is not None:
         additions.insert(
             5,
@@ -157,7 +203,11 @@ def compare(output):
         key: value for key, value in manifest.items() if key != "tasks"
     }
     atomic_json(output / "treatment_snapshot.json", snapshot)
-    target = ROOT / "benchmark/experiments/lsp-graph-50.json"
+    target = (
+        ROOT
+        / "benchmark/experiments"
+        / ("pager-idle-50.json" if paging else "lsp-graph-50.json")
+    )
     if (
         target.exists()
         and read_json(target)["experiment_id"] != manifest["experiment_id"]

@@ -12,6 +12,21 @@ from pathlib import Path
 from types import SimpleNamespace
 
 
+def coder_feature_options(features):
+    options = {}
+    if features.get("enable_lsp_graph"):
+        options.update(enable_lsp_graph=True, lsp_timeout=features["lsp_timeout"])
+    if features.get("enable_l2_paging"):
+        options.update(
+            enable_l2_paging=True,
+            max_l1_tokens=features.get("max_l1_tokens"),
+            max_l1_files=features.get("max_l1_files"),
+            max_l2_tokens=features.get("max_l2_tokens"),
+            l1_ttl_turns=features.get("l1_ttl_turns", 2),
+        )
+    return options
+
+
 def run(job_path):
     job = json.loads(Path(job_path).read_text())
     protocol_in, protocol_out = sys.stdin, sys.stdout
@@ -28,6 +43,37 @@ def run(job_path):
     started = time.monotonic()
     semantic_totals = Counter()
     semantic_maps = []
+    paging_events = []
+    paging_requests = []
+    paging_reloads = 0
+
+    def pager_telemetry(include_events=False):
+        pager = getattr(coder, "context_pager", None)
+        if pager is None:
+            return None
+        return {
+            "enabled": True,
+            "settings": {
+                key: getattr(pager, key)
+                for key in (
+                    "max_l1_tokens",
+                    "max_l1_files",
+                    "max_l2_tokens",
+                    "l1_ttl_turns",
+                )
+            },
+            "completed_responses": pager.turn,
+            "stats": {**dict(pager.stats), "full_file_reloads": paging_reloads},
+            "l1_files": sorted(coder.get_rel_fname(path) for path in coder.abs_fnames),
+            "l2_files": sorted(
+                coder.get_rel_fname(path) for path in coder.l2_interface_fnames
+            ),
+            **(
+                {"events": paging_events, "request_contexts": paging_requests}
+                if include_events
+                else {}
+            ),
+        }
 
     def lsp_telemetry():
         graph = getattr(coder.repo_map, "semantic_graph", None)
@@ -100,6 +146,10 @@ def run(job_path):
                 if Path(path).is_file()
             )
             state["peak_l1_tokens"] = max(state["peak_l1_tokens"], tokens)
+            if getattr(coder, "context_pager", None) is not None:
+                content = coder.context_pager.interface_content(coder)
+                l2_tokens = model.token_count(content) if content else 0
+                state["peak_l2_tokens"] = max(state["peak_l2_tokens"], l2_tokens)
             return sorted(set(l1 + l2))
 
         class RemoteModel(Model):
@@ -113,6 +163,7 @@ def run(job_path):
                     )
                 state["turn"] += 1
                 state["contexts"][state["turn"]] = context()
+                paging_snapshot = pager_telemetry()
                 emit(
                     "model_request",
                     ordinal=state["turn"],
@@ -122,6 +173,7 @@ def run(job_path):
                     extra_params=self.extra_params,
                     context=state["contexts"][state["turn"]],
                     lsp=lsp_telemetry(),
+                    pager=paging_snapshot,
                     elapsed_seconds=time.monotonic() - started,
                 )
                 line = protocol_in.readline()
@@ -136,6 +188,10 @@ def run(job_path):
                         reply["error"]["message"], code=reply["error"].get("code")
                     )
                 usage = SimpleNamespace(**reply["usage"])
+                if paging_snapshot is not None:
+                    paging_requests.append(
+                        {"ordinal": state["turn"], **paging_snapshot}
+                    )
                 result = SimpleNamespace(
                     choices=[
                         SimpleNamespace(
@@ -163,12 +219,7 @@ def run(job_path):
             chat_history_file=str(artifacts / "chat.md"),
         )
         features = job.get("features", {})
-        feature_options = {}
-        if features.get("enable_lsp_graph"):
-            feature_options = {
-                "enable_lsp_graph": True,
-                "lsp_timeout": features["lsp_timeout"],
-            }
+        feature_options = coder_feature_options(features)
         coder = Coder.create(
             model,
             "diff",
@@ -185,6 +236,28 @@ def run(job_path):
             num_cache_warming_pings=0,
             **feature_options,
         )
+        if getattr(coder, "context_pager", None) is not None:
+            original_step = coder.context_pager.step
+            original_add_rel_fname = coder.add_rel_fname
+
+            def add_rel_fname(path):
+                nonlocal paging_reloads
+                full = coder.abs_root_path(path)
+                was_l2 = full in coder.l2_interface_fnames
+                result = original_add_rel_fname(path)
+                if was_l2 and full in coder.abs_fnames:
+                    paging_reloads += 1
+                return result
+
+            coder.add_rel_fname = add_rel_fname
+
+            def paging_step(owner):
+                result = original_step(owner)
+                context()
+                paging_events.append({"ordinal": state["turn"], **pager_telemetry()})
+                return result
+
+            coder.context_pager.step = paging_step
         graph = getattr(coder.repo_map, "semantic_graph", None)
         if graph is not None:
             original_prepare = graph.prepare
@@ -284,6 +357,7 @@ def run(job_path):
             stop_reason=state["stop_reason"],
             patch_sha256=hashlib.sha256(patch).hexdigest(),
             lsp=lsp_telemetry(),
+            pager=pager_telemetry(include_events=True),
             elapsed_seconds=time.monotonic() - started,
         )
         if coder.repo_map:
