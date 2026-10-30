@@ -11,6 +11,10 @@ Milestone 1's default-off LSP graph is now implemented; see [implementation and 
 Its [50-task treatment](LSP_RUN.md#completed-result) matched control at 64% resolution
 while using 2.32% more tokens; no efficiency improvement was demonstrated by LSP alone.
 Milestone 2's opt-in whole-file context pager is implemented; see [behavior and verification](CONTEXT_PAGER.md).
+Its [fifty-task result](PAGER_RUN.md#completed-result) resolved 31/50 (62%) versus
+the control's 32/50 (64%). Accepted responses used 3,330,103 tokens (+54.52%);
+one failed attempt has unknown additional usage. The only TTL demotion happened
+after a task's final response, so no subsequent input benefited from it.
 Navigation, trace weighting and edit-diagnostic reflection remain upcoming work.
 
 ## Assessment of prompt.md

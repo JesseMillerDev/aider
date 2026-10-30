@@ -16,6 +16,46 @@ installed Python dependencies. No Node or language servers are added. Source, wo
 preflight, Dockerfile, host runner and image fingerprints are saved in `run_manifest.json`.
 The control and completed LSP-only result records remain unchanged.
 
+## Completed result
+
+All fifty tasks finished grading: **31/50 resolved (62%)**, versus **32/50 (64%)**
+for the control. There are 47 official reports, three empty predictions and zero
+unresolved infrastructure errors. One task improved (`psf__requests-3362`); two
+regressed (`django__django-12308`, `pytest-dev__pytest-5103`).
+
+The [treatment snapshot](experiments/pager-idle-50.json) preserves all fifty result
+records, effective settings, source/image fingerprints and patch/report hashes.
+The [accepted-response usage analysis](experiments/pager-idle-50-analysis.json)
+records **3,289,196 input + 40,907 output = 3,330,103 tokens**, across **109 completed
+model calls**. This accepted-response subtotal is **54.52% higher** than the
+control's 2,155,196 tokens. Reported cached input is zero.
+
+This is not an all-attempt token total. A request for `django__django-11815`
+returned `server_is_overloaded` with no usage, after nineteen tasks had generated.
+Generation resumed after a cooldown, preserving completed tasks and the original
+error. All fifty accepted-response usage records are known, but only 49 tasks
+have complete usage for every attempt. The primary snapshot therefore keeps
+aggregate input/output/combined usage null. The failed attempt's additional
+usage remains unknown; it is not replaced with zero.
+
+Paging recorded **530 preloads, four full-file reloads and one TTL demotion**;
+46 tasks actually sent L2 context. The sole demotion occurred after the final
+response of `astropy__astropy-7746`, with no subsequent model request. It could
+not reduce that task's input. Dependency interfaces added context, while idle
+demotion provided no measured input savings in these short trajectories. This
+arm did not demonstrate a resolution or token-efficiency improvement.
+
+After all grades completed, resuming the unchanged orchestrator saved the final
+comparison without changing any transcript fingerprints. The frozen control
+and LSP snapshots were verified byte-for-byte unchanged. Raw provider errors,
+retry evidence, transcripts and grading reports remain in the ignored results
+directory. The JSON analysis includes per-call usage and source hashes, without
+copying prompts or response text.
+
+These are historical comparisons. Provider drift and inference variability
+remain possible confounders, and the run does not separate preloading from idle
+demotion effects. No fresh holdout or navigation treatment has been evaluated.
+
 ## Gate and isolation
 
 The offline image preflight makes zero inference requests. It keeps six files totaling
