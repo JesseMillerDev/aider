@@ -12,6 +12,7 @@ class ChatChunks:
     chat_files: List = field(default_factory=list)
     cur: List = field(default_factory=list)
     reminder: List = field(default_factory=list)
+    interfaces: List = field(default_factory=list)
 
     def all_messages(self):
         return (
@@ -19,6 +20,7 @@ class ChatChunks:
             + self.examples
             + self.readonly_files
             + self.repo
+            + self.interfaces
             + self.done
             + self.chat_files
             + self.cur
@@ -31,7 +33,9 @@ class ChatChunks:
         else:
             self.add_cache_control(self.system)
 
-        if self.repo:
+        if self.interfaces:
+            self.add_cache_control(self.interfaces)
+        elif self.repo:
             # this will mark both the readonly_files and repomap chunk as cacheable
             self.add_cache_control(self.repo)
         else:

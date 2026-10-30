@@ -10,7 +10,8 @@ runner has completed the [50-task control baseline](baselines/README.md).
 Milestone 1's default-off LSP graph is now implemented; see [implementation and verification](LSP_GRAPH.md).
 Its [50-task treatment](LSP_RUN.md#completed-result) matched control at 64% resolution
 while using 2.32% more tokens; no efficiency improvement was demonstrated by LSP alone.
-Context paging, navigation, trace weighting and edit-diagnostic reflection remain upcoming work.
+Milestone 2's opt-in whole-file context pager is implemented; see [behavior and verification](CONTEXT_PAGER.md).
+Navigation, trace weighting and edit-diagnostic reflection remain upcoming work.
 
 ## Assessment of prompt.md
 

@@ -30,6 +30,16 @@ def positive_seconds(value):
     return value
 
 
+def positive_integer(value):
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError):
+        raise argparse.ArgumentTypeError("Expected a positive integer") from None
+    if parsed <= 0:
+        raise argparse.ArgumentTypeError("Expected a positive integer")
+    return parsed
+
+
 def resolve_aiderignore_path(path_str, git_root=None):
     path = Path(path_str)
     if path.is_absolute():
@@ -269,6 +279,7 @@ def get_parser(default_config_files, git_root):
         default=None,
         help="Suggested number of tokens to use for repo map, use 0 to disable",
     )
+
     group.add_argument(
         "--map-refresh",
         choices=["auto", "always", "files", "manual"],
@@ -284,6 +295,20 @@ def get_parser(default_config_files, git_root):
         default=2,
         help="Multiplier for map tokens when no files are specified (default: 2)",
     )
+
+    group = parser.add_argument_group("Context paging settings")
+    group.add_argument(
+        "--enable-l2-paging", action=argparse.BooleanOptionalAction, default=False,
+        help="Manage whole-file working context and read-only interface summaries (default: False)",
+    )
+    for flag, default, help_text in (
+        ("--max-l1-tokens", 16000, "Working source-file token budget"),
+        ("--max-l1-files", 4, "Working source-file count budget"),
+        ("--max-l2-tokens", 6000, "Read-only interface token budget"),
+        ("--l1-ttl-turns", 2, "Idle completed responses before demoting a file"),
+    ):
+        group.add_argument(flag, type=positive_integer, default=default,
+                           help=f"{help_text} (default: {default})")
 
     ##########
     group = parser.add_argument_group("History Files")

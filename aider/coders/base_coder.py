@@ -191,6 +191,9 @@ class Coder:
         for coder in coders.__all__:
             if hasattr(coder, "edit_format") and coder.edit_format == edit_format:
                 res = coder(main_model, io, **kwargs)
+                if (from_coder and res.context_pager is not None
+                        and from_coder.context_pager is not None):
+                    res.context_pager.inherit_state(from_coder.context_pager, res)
                 res.original_kwargs = dict(kwargs)
                 return res
 
@@ -342,6 +345,11 @@ class Coder:
         enable_lsp_graph=False,
         lsp_timeout=10.0,
         lsp_bridge=None,
+        enable_l2_paging=False,
+        max_l1_tokens=16000,
+        max_l1_files=4,
+        max_l2_tokens=6000,
+        l1_ttl_turns=2,
     ):
         # Fill in a dummy Analytics if needed, but it is never .enable()'d
         self.analytics = analytics if analytics is not None else Analytics()
@@ -394,6 +402,8 @@ class Coder:
         self.verbose = verbose
         self.abs_fnames = set()
         self.abs_read_only_fnames = set()
+        self.context_pager = None
+        self.l2_interface_fnames = set()
         self.add_gitignore_files = add_gitignore_files
 
         if cur_messages:
@@ -536,6 +546,15 @@ class Coder:
         self.auto_test = auto_test
         self.test_cmd = test_cmd
 
+        if enable_l2_paging:
+            from aider.context_pager import ContextPager
+
+            self.context_pager = ContextPager(
+                self.root, self.main_model.token_count, max_l1_tokens=max_l1_tokens,
+                max_l1_files=max_l1_files, max_l2_tokens=max_l2_tokens,
+                l1_ttl_turns=l1_ttl_turns,
+            )
+
         # validate the functions jsonschema
         if self.functions:
             from jsonschema import Draft7Validator
@@ -560,11 +579,19 @@ class Coder:
             bold = False
 
     def add_rel_fname(self, rel_fname):
-        self.abs_fnames.add(self.abs_root_path(rel_fname))
+        path = self.abs_root_path(rel_fname)
+        self.abs_fnames.add(path)
+        if self.context_pager is not None:
+            self.l2_interface_fnames.discard(path)
+            self.context_pager.forgotten.discard(path)
         self.check_added_files()
 
     def drop_rel_fname(self, fname):
         abs_fname = self.abs_root_path(fname)
+        if self.context_pager is not None:
+            present = abs_fname in self.abs_fnames or abs_fname in self.l2_interface_fnames
+            self.context_pager.forget(self, abs_fname)
+            return True if present else None
         if abs_fname in self.abs_fnames:
             self.abs_fnames.remove(abs_fname)
             return True
@@ -602,7 +629,7 @@ class Coder:
                 self.waiting_spinner = None
 
     def get_abs_fnames_content(self):
-        for fname in list(self.abs_fnames):
+        for fname in (sorted(self.abs_fnames) if self.context_pager else list(self.abs_fnames)):
             content = self.io.read_text(fname)
 
             if content is None:
@@ -725,7 +752,10 @@ class Coder:
         all_abs_files = set(self.get_all_abs_files())
         repo_abs_read_only_fnames = set(self.abs_read_only_fnames) & all_abs_files
         chat_files = set(self.abs_fnames) | repo_abs_read_only_fnames
+        if self.context_pager is not None:
+            chat_files |= set(self.l2_interface_fnames)
         other_files = all_abs_files - chat_files
+        fallback_files = other_files if self.context_pager is not None else all_abs_files
 
         repo_content = self.repo_map.get_repo_map(
             chat_files,
@@ -736,19 +766,19 @@ class Coder:
         )
 
         # fall back to global repo map if files in chat are disjoint from rest of repo
-        if not repo_content:
+        if not repo_content and fallback_files:
             repo_content = self.repo_map.get_repo_map(
                 set(),
-                all_abs_files,
+                fallback_files,
                 mentioned_fnames=mentioned_fnames,
                 mentioned_idents=mentioned_idents,
             )
 
         # fall back to completely unhinted repo
-        if not repo_content:
+        if not repo_content and fallback_files:
             repo_content = self.repo_map.get_repo_map(
                 set(),
-                all_abs_files,
+                fallback_files,
             )
 
         return repo_content
@@ -1230,6 +1260,8 @@ class Coder:
         return prompt
 
     def format_chat_chunks(self):
+        if self.context_pager is not None:
+            self.context_pager.prepare(self)
         self.choose_fence()
         main_sys = self.fmt_system_prompt(self.gpt_prompts.main_system)
         if self.main_model.system_prompt_prefix:
@@ -1287,6 +1319,13 @@ class Coder:
         chunks.repo = self.get_repo_messages()
         chunks.readonly_files = self.get_readonly_files_messages()
         chunks.chat_files = self.get_chat_files_messages()
+        if self.context_pager is not None:
+            content = self.context_pager.interface_content(self)
+            if content:
+                chunks.interfaces = [
+                    dict(role="user", content=content),
+                    dict(role="assistant", content="I will request full contents before editing these files."),
+                ]
 
         if self.gpt_prompts.system_reminder:
             reminder_message = [
@@ -1425,6 +1464,17 @@ class Coder:
         return True
 
     def send_message(self, inp):
+        pager = self.context_pager
+        self._pager_response_completed = False
+        if pager is not None:
+            pager.prepare(self, inp)
+        try:
+            yield from self._send_message(inp)
+        finally:
+            if pager is not None and self._pager_response_completed:
+                pager.step(self)
+
+    def _send_message(self, inp):
         self.event("message_send_starting")
 
         # Notify IO that LLM processing is starting
@@ -1548,6 +1598,7 @@ class Coder:
         self.show_usage_report()
 
         self.add_assistant_reply_to_cur_messages()
+        self._pager_response_completed = not exhausted and not interrupted
 
         if exhausted:
             if self.cur_messages and self.cur_messages[-1]["role"] == "user":
@@ -1700,6 +1751,8 @@ class Coder:
             if not fname:
                 continue
             errors = self.linter.lint(self.abs_root_path(fname))
+            if self.context_pager is not None:
+                self.context_pager.record_lint(self, fname, errors, self.linter.last_status)
 
             if errors:
                 res += "\n"
@@ -2182,6 +2235,8 @@ class Coder:
             files = self.repo.get_tracked_files()
         else:
             files = self.get_inchat_relative_files()
+        if self.context_pager is not None:
+            files = set(files) | {self.get_rel_fname(path) for path in self.l2_interface_fnames}
 
         # This is quite slow in large repos
         # files = [fname for fname in files if self.is_file_safe(fname)]
@@ -2294,6 +2349,23 @@ class Coder:
         self.warning_given = True
 
     def prepare_to_edit(self, edits):
+        if self.context_pager is not None:
+            edits = list(edits)
+            paged = sorted({edit[0] for edit in edits if edit[0] is not None
+                            and self.abs_root_path(edit[0]) in self.l2_interface_fnames})
+            if paged:
+                loaded = []
+                for path in paged:
+                    if self.io.confirm_ask("Load the full file before editing?", subject=path):
+                        self.add_rel_fname(path)
+                        loaded.append(path)
+                if loaded:
+                    self.reflected_message = (
+                        "No edits from the previous response were applied. Full contents are now "
+                        "available for: " + ", ".join(loaded)
+                        + ". Regenerate the edits using the complete source, not the L2 summaries."
+                    )
+                return []
         res = []
         seen = dict()
 

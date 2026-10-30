@@ -118,8 +118,8 @@ Protocol and server references:
 
 ## Next milestone
 
-Implement whole-file L1/L2 paging before introducing source windows, preserving unresolved-error
-state and editable-file semantics. Then add navigation, trace personalization and diagnostic
-reflection. The treatment runner must explicitly build the treatment revision with server binaries
+Whole-file L1/L2 paging is implemented behind a separate default-off flag; see
+[context paging](CONTEXT_PAGER.md). Navigation, trace personalization, source windows and diagnostic
+reflection remain upcoming work. The treatment runner must explicitly build the treatment revision with server binaries
 and pass feature flags; the existing baseline builder intentionally still archives control revision
 `8400741ce7a9d26aecdbe97da423de5f3e80def1`.

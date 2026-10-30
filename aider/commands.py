@@ -415,6 +415,8 @@ class Commands:
         self.io.tool_output("All chat history cleared.")
 
     def _drop_all_files(self):
+        if getattr(self.coder, "context_pager", None) is not None:
+            self.coder.context_pager.forget(self.coder)
         self.coder.abs_fnames = set()
 
         # When dropping all files, keep those that were originally provided via args.read
@@ -949,6 +951,8 @@ class Commands:
 
             for matched_file in read_only_matched:
                 self.coder.abs_read_only_fnames.remove(matched_file)
+                if getattr(self.coder, "context_pager", None) is not None:
+                    self.coder.context_pager.forget(self.coder, matched_file)
                 self.io.tool_output(f"Removed read-only file {matched_file} from the chat")
 
             # For editable files, use glob if word contains glob chars, otherwise use substring
@@ -957,7 +961,9 @@ class Commands:
             else:
                 # Use substring matching like we do for read-only files
                 matched_files = [
-                    self.coder.get_rel_fname(f) for f in self.coder.abs_fnames if expanded_word in f
+                    self.coder.get_rel_fname(f)
+                    for f in self.coder.abs_fnames | getattr(self.coder, "l2_interface_fnames", set())
+                    if expanded_word in f
                 ]
 
             if not matched_files:
@@ -965,8 +971,7 @@ class Commands:
 
             for matched_file in matched_files:
                 abs_fname = self.coder.abs_root_path(matched_file)
-                if abs_fname in self.coder.abs_fnames:
-                    self.coder.abs_fnames.remove(abs_fname)
+                if self.coder.drop_rel_fname(abs_fname):
                     self.io.tool_output(f"Removed {matched_file} from the chat")
 
     def cmd_git(self, args):
@@ -1009,6 +1014,8 @@ class Commands:
             return self.cmd_run(args, True)
 
         errors = args()
+        if getattr(self.coder, "context_pager", None) is not None:
+            self.coder.context_pager.record_test(self.coder, not errors)
         if not errors:
             return
 
@@ -1020,6 +1027,10 @@ class Commands:
         exit_status, combined_output = run_cmd(
             args, verbose=self.verbose, error_print=self.io.tool_error, cwd=self.coder.root
         )
+
+        if add_on_nonzero_exit and getattr(self.coder, "context_pager", None) is not None:
+            passed = exit_status == 0 if combined_output is not None else None
+            self.coder.context_pager.record_test(self.coder, passed)
 
         if combined_output is None:
             return

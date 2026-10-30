@@ -27,6 +27,8 @@ class Linter:
             python=self.py_lint,
         )
         self.all_lint_cmd = None
+        self.last_status = "unknown"
+        self._command_failed = False
 
     def set_linter(self, lang, cmd):
         if lang:
@@ -57,6 +59,7 @@ class Linter:
             )
         except OSError as err:
             print(f"Unable to execute lint command: {err}")
+            self._command_failed = True
             return
         errors = stdout
         if returncode == 0:
@@ -80,6 +83,8 @@ class Linter:
         return LintResult(text=errors, lines=linenums)
 
     def lint(self, fname, cmd=None):
+        self.last_status = "unknown"
+        self._command_failed = False
         rel_fname = self.get_rel_fname(fname)
         try:
             code = Path(fname).read_text(encoding=self.encoding, errors="replace")
@@ -100,10 +105,12 @@ class Linter:
 
         if callable(cmd):
             lintres = cmd(fname, rel_fname, code)
+            self.last_status = "failed" if lintres else "clean"
         elif cmd:
             lintres = self.run_cmd(cmd, rel_fname, code)
+            self.last_status = "unknown" if self._command_failed else "failed" if lintres else "clean"
         else:
-            lintres = basic_lint(rel_fname, code)
+            self.last_status, lintres = _basic_lint(rel_fname, code)
 
         if not lintres:
             return
@@ -199,23 +206,27 @@ def lint_python_compile(fname, code):
 
 
 def basic_lint(fname, code):
+    return _basic_lint(fname, code)[1]
+
+
+def _basic_lint(fname, code):
     """
     Use tree-sitter to look for syntax errors, display them with tree context.
     """
 
     lang = filename_to_lang(fname)
     if not lang:
-        return
+        return "unknown", None
 
     # Tree-sitter linter is not capable of working with typescript #1132
     if lang == "typescript":
-        return
+        return "unknown", None
 
     try:
         parser = get_parser(lang)
     except Exception as err:
         print(f"Unable to load parser: {err}")
-        return
+        return "unknown", None
 
     tree = parser.parse(bytes(code, "utf-8"))
 
@@ -223,12 +234,12 @@ def basic_lint(fname, code):
         errors = traverse_tree(tree.root_node)
     except RecursionError:
         print(f"Unable to lint {fname} due to RecursionError")
-        return
+        return "unknown", None
 
     if not errors:
-        return
+        return "clean", None
 
-    return LintResult(text="", lines=errors)
+    return "failed", LintResult(text="", lines=errors)
 
 
 def tree_context(fname, code, line_nums):
