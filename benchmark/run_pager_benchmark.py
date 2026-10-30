@@ -125,11 +125,17 @@ def prepare(output, instances, dataset):
 def check_smoke(manifest, output):
     if hashlib.sha256(BASELINE.read_bytes()).hexdigest() != manifest["baseline_sha256"]:
         raise ValueError("Frozen baseline changed before checking smoke")
-    controls = read_json(BASELINE)["instances"]
+    baseline = read_json(BASELINE)
+    controls = baseline["instances"]
+    tasks = manifest.get("tasks", [])
+    if not tasks or digest(tasks) != baseline["configuration"]["tasks_sha256"]:
+        raise ValueError("Smoke task order differs from the frozen selection")
     keys = manifest["smoke_instance_ids"]
-    if len(keys) != 5 or keys != [row["instance_id"] for row in controls[:5]]:
+    if len(keys) != 5 or keys != [task["instance_id"] for task in tasks[:5]]:
         raise ValueError("Smoke must use the original first five frozen tasks")
     control = {row["instance_id"]: row for row in controls}
+    if len(control) != len(controls) or any(key not in control for key in keys):
+        raise ValueError("Smoke control records have missing or duplicate task IDs")
 
     def measured_tokens(row):
         values = [row.get("total_input_tokens"), row.get("total_output_tokens")]
@@ -230,7 +236,9 @@ def check_smoke(manifest, output):
         },
         "reasons": reasons,
         "criterion": (
-            "Five frozen graded tasks with complete measured usage; strictly fewer input+output tokens; no lower resolution count; no dependency preloads; LSP disabled. L2 exposure is optional."
+            "Five frozen graded tasks with complete measured usage; strictly fewer "
+            "input+output tokens; no lower resolution count; no dependency preloads; "
+            "LSP disabled. L2 exposure is optional."
         ),
     }
     atomic_json(output / "smoke_gate.json", gate)

@@ -45,10 +45,12 @@ def smoke_rows(tmp_path, monkeypatch):
     manifest = {
         "experiment_id": "test",
         "smoke_instance_ids": [f"task{i}" for i in range(5)],
+        "tasks": [{"instance_id": f"task{i}"} for i in range(5)],
     }
     atomic_json(
         baseline_path,
         {
+            "configuration": {"tasks_sha256": digest(manifest["tasks"])},
             "instances": [
                 {
                     "instance_id": key,
@@ -58,7 +60,7 @@ def smoke_rows(tmp_path, monkeypatch):
                     "total_output_tokens": 100,
                 }
                 for key in manifest["smoke_instance_ids"]
-            ]
+            ],
         },
     )
     manifest["baseline_sha256"] = hashlib.sha256(baseline_path.read_bytes()).hexdigest()
@@ -93,6 +95,28 @@ def test_smoke_accepts_measured_savings_without_requiring_demotion(tmp_path, mon
     gate = check_smoke(manifest, tmp_path)
     assert gate["requests_with_l2"] == 10 and gate["totals"]["demotions"] == 0
     assert not any(task["resolved"] for task in gate["tasks"])
+
+
+def test_smoke_matches_baseline_by_id_independently_of_record_order(tmp_path, monkeypatch):
+    manifest = smoke_rows(tmp_path, monkeypatch)
+    path = tmp_path / "baseline.json"
+    baseline = read_json(path)
+    baseline["instances"].reverse()
+    atomic_json(path, baseline)
+    manifest["baseline_sha256"] = hashlib.sha256(path.read_bytes()).hexdigest()
+    gate = check_smoke(manifest, tmp_path)
+    assert gate["status"] == "passed"
+    assert gate["measurement"]["control_tokens"] == 6500
+
+
+@pytest.mark.parametrize("change", ["selected_ids", "frozen_order"])
+def test_smoke_still_rejects_a_changed_task_selection(tmp_path, monkeypatch, change):
+    manifest = smoke_rows(tmp_path, monkeypatch)
+    manifest["smoke_instance_ids"].reverse()
+    if change == "frozen_order":
+        manifest["tasks"].reverse()
+    with pytest.raises(ValueError, match="frozen"):
+        check_smoke(manifest, tmp_path)
 
 
 def test_smoke_allows_zero_l2_exposure_when_total_usage_is_lower(tmp_path, monkeypatch):
