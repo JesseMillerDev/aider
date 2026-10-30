@@ -55,8 +55,16 @@ class FakeBridge:
 
 def setup(tmp_path, files=None, active=("a.py",), **pager_options):
     files = files or {
-        "a.py": "from b import target\n\ndef caller():\n    return target(1)\n",
-        "b.py": "def target(value: int) -> int:\n    return value + 100\n",
+        "a.py": (
+            "from b import target\n\ndef caller(): # "
+            + "implementation " * 200
+            + "\n    return target(1)\n"
+        ),
+        "b.py": (
+            "def target(value: int) -> int: # "
+            + "implementation " * 200
+            + "\n    return value + 100\n"
+        ),
     }
     paths = {}
     for name, source in files.items():
@@ -275,7 +283,7 @@ def real_coder(path, **options):
 def test_cli_and_default_off_prompt_and_commands(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     path = tmp_path / "a.py"
-    path.write_text("def a():\n    return 1\n")
+    path.write_text("def a(): # " + "implementation " * 200 + "\n    return 1\n")
     coder = real_coder(path)
     assert coder.agent_navigator is None and coder.context_pager is None
     assert "/nav-def" not in coder.commands.get_commands()
@@ -326,7 +334,7 @@ def test_navigation_response_cannot_apply_mixed_edits_and_next_reply_can(tmp_pat
 def test_clone_owns_independent_paging_and_navigation_state(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     path = tmp_path / "a.py"
-    path.write_text("def a():\n    return 1\n")
+    path.write_text("def a(): # " + "implementation " * 200 + "\n    return 1\n")
     coder = real_coder(path, enable_agent_nav=True)
     coder.agent_navigator.handle(block("/demote_l2 a.py"))
     clone = coder.clone()
@@ -443,7 +451,7 @@ def test_open_dependency_edits_are_notified_before_next_lsp_query(tmp_path):
 def test_failed_provider_reply_cannot_execute_partial_navigation(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     path = tmp_path / "a.py"
-    path.write_text("def a():\n    return 1\n")
+    path.write_text("def a(): # " + "implementation " * 200 + "\n    return 1\n")
     coder = real_coder(path, enable_agent_nav=True)
 
     class ProviderFailure(Exception):

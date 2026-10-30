@@ -10,18 +10,12 @@ from benchmark.run_baseline import atomic_json, grade, result_record
 from benchmark.run_lsp_benchmark import ARM, check_smoke, prepare
 
 
-def test_treatment_grading_uses_distinct_arm_and_patch_bound_report(
-    tmp_path, monkeypatch
-):
+def test_treatment_grading_uses_distinct_arm_and_patch_bound_report(tmp_path, monkeypatch):
     from benchmark import run_baseline
 
     commands = []
-    monkeypatch.setattr(
-        run_baseline, "command", lambda args, *a, **kw: commands.append(args)
-    )
-    monkeypatch.setattr(
-        run_baseline, "read_resolution", lambda path, key: ARM in path.parts
-    )
+    monkeypatch.setattr(run_baseline, "command", lambda args, *a, **kw: commands.append(args))
+    monkeypatch.setattr(run_baseline, "read_resolution", lambda path, key: ARM in path.parts)
     resolved, provenance = grade(
         {"experiment_id": "treatment", "arm": ARM, "grader_image": "grader"},
         {"instance_id": "task"},
@@ -82,9 +76,7 @@ def test_smoke_requires_actual_semantic_evidence_not_only_an_enabled_flag(tmp_pa
         ({"complete": False}, "incomplete grading or usage"),
     ],
 )
-def test_smoke_stops_on_unusable_servers_or_incomplete_usage(
-    tmp_path, options, message
-):
+def test_smoke_stops_on_unusable_servers_or_incomplete_usage(tmp_path, options, message):
     manifest = smoke_rows(tmp_path, **options)
     with pytest.raises(ValueError, match=message):
         check_smoke(manifest, tmp_path)
@@ -113,9 +105,7 @@ def test_optional_language_fallback_does_not_hide_a_working_python_server(tmp_pa
     assert check_smoke(manifest, tmp_path)["status"] == "passed"
 
 
-def test_prepare_rejects_different_subset_before_build_or_model_calls(
-    tmp_path, monkeypatch
-):
+def test_prepare_rejects_different_subset_before_build_or_model_calls(tmp_path, monkeypatch):
     from benchmark import run_lsp_benchmark as runner
 
     task = {
@@ -223,9 +213,7 @@ def comparison_fixture(tmp_path, monkeypatch):
     return comparison, output
 
 
-def test_comparison_records_complete_pairs_and_preserves_unknown_usage(
-    tmp_path, monkeypatch
-):
+def test_comparison_records_complete_pairs_and_preserves_unknown_usage(tmp_path, monkeypatch):
     from benchmark.ab_support import read_json
 
     comparison, output = comparison_fixture(tmp_path, monkeypatch)
@@ -251,9 +239,7 @@ def test_comparison_records_complete_pairs_and_preserves_unknown_usage(
 
 
 @pytest.mark.parametrize("change", ["missing", "prediction", "provenance"])
-def test_comparison_refuses_incomplete_or_changed_predictions(
-    tmp_path, monkeypatch, change
-):
+def test_comparison_refuses_incomplete_or_changed_predictions(tmp_path, monkeypatch, change):
     from benchmark.ab_support import read_json
 
     comparison, output = comparison_fixture(tmp_path, monkeypatch)
@@ -271,19 +257,28 @@ def test_comparison_refuses_incomplete_or_changed_predictions(
     assert not (output / "comparison_report.md").exists()
 
 
+@pytest.mark.parametrize("demand", [False, True])
 def test_paging_comparison_records_a_separate_treatment_without_overwriting_lsp(
-    tmp_path, monkeypatch
+    tmp_path, monkeypatch, demand
 ):
     from benchmark.ab_support import read_json
-    from benchmark.run_pager_benchmark import ARM as pager_arm
+    from benchmark.run_pager_benchmark import ARM as demand_arm
+
+    pager_arm = demand_arm if demand else "treatment_pager_idle"
 
     comparison, output = comparison_fixture(tmp_path, monkeypatch)
     manifest = read_json(output / "run_manifest.json")
     manifest.update(kind="paging_only_treatment", arm=pager_arm)
+    if demand:
+        manifest["paging_policy"] = "demand"
     atomic_json(output / "run_manifest.json", manifest)
     prior = tmp_path / "benchmark/experiments/lsp-graph-50.json"
     atomic_json(prior, {"experiment_id": "previous-lsp", "preserve": True})
     before = prior.read_bytes()
+    historical_pager = tmp_path / "benchmark/experiments/pager-idle-50.json"
+    if demand:
+        atomic_json(historical_pager, {"experiment_id": "old-paging", "preserve": True})
+        pager_before = historical_pager.read_bytes()
     for task in manifest["tasks"]:
         path = output / ARM / (task["instance_id"] + ".json")
         row = read_json(path)
@@ -291,7 +286,7 @@ def test_paging_comparison_records_a_separate_treatment_without_overwriting_lsp(
         row.pop("lsp")
         row["pager"] = {
             "enabled": True,
-            "stats": {"demotions": 1, "preloads": 2},
+            "stats": {"demotions": 1, "preloads": 0 if demand else 2},
             "request_contexts": [{"l2_files": ["b.py"]}],
         }
         atomic_json(output / pager_arm / path.name, row)
@@ -300,6 +295,10 @@ def test_paging_comparison_records_a_separate_treatment_without_overwriting_lsp(
     assert summary["pager_totals"]["demotions"] == 50
     assert summary["tasks_sent_l2_context"] == 50
     assert prior.read_bytes() == before
-    assert (tmp_path / "benchmark/experiments/pager-idle-50.json").exists()
+    target = "pager-demand-50.json" if demand else "pager-idle-50.json"
+    assert (tmp_path / "benchmark/experiments" / target).exists()
+    if demand:
+        assert historical_pager.read_bytes() == pager_before
     report = (output / "comparison_report.md").read_text(encoding="utf-8")
-    assert "Idle-only paging" in report and "LSP was disabled" in report
+    assert ("Demand paging" if demand else "Idle-only paging") in report
+    assert "LSP was disabled" in report

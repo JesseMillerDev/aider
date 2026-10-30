@@ -13,6 +13,7 @@ INTERFACE_PREFIX = (
     "These are not complete file contents. Request a full file before editing it; "
     "never use an interface summary as replacement file contents.\n\n"
 )
+INTERFACE_ACK = "I will request full contents before editing these files."
 
 
 def _doc(node):
@@ -61,9 +62,7 @@ def _python_interface(source):
                 node.value = None
                 result.append(node)
             elif isinstance(node, ast.Assign):
-                names = [
-                    target.id for target in node.targets if isinstance(target, ast.Name)
-                ]
+                names = [target.id for target in node.targets if isinstance(target, ast.Name)]
                 if class_scope or any(
                     not name.startswith("_") or name == "__all__" or name.isupper()
                     for name in names
@@ -107,10 +106,7 @@ def _python_interface(source):
     ast.fix_missing_locations(tree)
     text = ast.unparse(tree)
     # Keep the stub parseable while making the omitted bodies explicit.
-    return (
-        re.sub(r"(?m)^(\s*)\.\.\.$", r"\1# ⋮ implementation omitted\n\1...", text)
-        + "\n"
-    )
+    return re.sub(r"(?m)^(\s*)\.\.\.$", r"\1# ⋮ implementation omitted\n\1...", text) + "\n"
 
 
 def _other_interface(path, source):
@@ -128,9 +124,7 @@ def _other_interface(path, source):
     edits = []
 
     def visit(node):
-        function = any(
-            word in node.type for word in ("function", "method", "constructor")
-        )
+        function = any(word in node.type for word in ("function", "method", "constructor"))
         block = node.child_by_field_name("body") if function else None
         if block is not None and block.type in (
             "statement_block",
@@ -183,9 +177,7 @@ class ContextPager:
     ):
         for value in (max_l1_tokens, max_l1_files, max_l2_tokens):
             if value is not None and (type(value) is not int or value <= 0):
-                raise ValueError(
-                    "Configured context paging caps must be positive integers"
-                )
+                raise ValueError("Configured context paging caps must be positive integers")
         if type(l1_ttl_turns) is not int or l1_ttl_turns <= 0:
             raise ValueError("Context paging TTL must be a positive integer")
         self.root = Path(root).resolve()
@@ -248,9 +240,7 @@ class ContextPager:
         return changed
 
     def _references(self, text):
-        words = {
-            word.strip("`'\"*(),.:;![]") for word in text.replace("\\", "/").split()
-        }
+        words = {word.strip("`'\"*(),.:;![]") for word in text.replace("\\", "/").split()}
         basenames = Counter(Path(path).name for path in self.states)
         return {
             path
@@ -301,9 +291,7 @@ class ContextPager:
             name = Path(path).relative_to(self.root).as_posix()
         except ValueError:
             name = str(path)
-        longest = max(
-            (len(match.group()) for match in re.finditer(r"`+", source)), default=0
-        )
+        longest = max((len(match.group()) for match in re.finditer(r"`+", source)), default=0)
         fence = "`" * max(3, longest + 1)
         return f"{name}\n{fence}\n{source}\n{fence}\n"
 
@@ -326,10 +314,7 @@ class ContextPager:
             and state.lint != "failed"
             and state.test != "failed"
             and (not state.edited or state.lint == "clean")
-            and (
-                not state.edited
-                or self.turn - state.last_edited_turn >= self.l1_ttl_turns
-            )
+            and (not state.edited or self.turn - state.last_edited_turn >= self.l1_ttl_turns)
         )
 
     def _select_l2(self, coder, candidates):
@@ -350,9 +335,7 @@ class ContextPager:
             # Count the complete assembled block, not an additive estimate per symbol.
             trial = {**blocks, path: block}
             if self.max_l2_tokens is None or (
-                self._count(
-                    INTERFACE_PREFIX + "\n".join(trial[key] for key in sorted(trial))
-                )
+                self._count(INTERFACE_PREFIX + "\n".join(trial[key] for key in sorted(trial)))
                 <= self.max_l2_tokens
             ):
                 blocks = trial
@@ -360,11 +343,12 @@ class ContextPager:
         return selected
 
     def _over_l1_budget(self, coder, tokens):
-        return (
-            self.max_l1_files is not None and len(coder.abs_fnames) > self.max_l1_files
-        ) or (self.max_l1_tokens is not None and tokens > self.max_l1_tokens)
+        return (self.max_l1_files is not None and len(coder.abs_fnames) > self.max_l1_files) or (
+            self.max_l1_tokens is not None and tokens > self.max_l1_tokens
+        )
 
     def _demote(self, coder, path):
+        before = self._context_tokens(coder)
         previous = set(coder.l2_interface_fnames)
         coder.abs_fnames.remove(path)
         candidates = [path] + sorted(
@@ -377,59 +361,37 @@ class ContextPager:
             return False
         coder.l2_interface_fnames = selected
         self.l2_paths = set(selected)
+        smaller = False
+        try:
+            after = self._context_tokens(coder)
+            smaller = 0 < after < before
+        finally:
+            if not smaller:
+                coder.abs_fnames.add(path)
+                coder.l2_interface_fnames = previous
+                self.l2_paths = set(previous)
+        if not smaller:
+            self.stats["unhelpful_demotions"] += 1
+            return False
         self.stats["demotions"] += 1
         return True
 
-    def _dependencies(self, coder):
-        modules = {}
-        for name in sorted(set(coder.get_all_abs_files()) | set(coder.abs_fnames)):
-            path = self._path(name)
-            if not path or Path(path).suffix not in (".py", ".pyi"):
-                continue
-            parts = list(Path(path).relative_to(self.root).with_suffix("").parts)
-            if parts[-1] == "__init__":
-                parts.pop()
-            variants = [parts, parts[1:]] if parts and parts[0] == "src" else [parts]
-            for variant in variants:
-                modules.setdefault(".".join(variant), path)
-        deps = set()
-        for path in sorted(coder.abs_fnames):
-            source = self.sources.get(path)
-            if source is None or Path(path).suffix not in (".py", ".pyi"):
-                continue
-            try:
-                tree = ast.parse(source)
-            except (SyntaxError, ValueError):
-                continue
-            package = list(Path(path).relative_to(self.root).parent.parts)
-            if package and package[0] == "src":
-                package = package[1:]
-            for node in ast.walk(tree):
-                names = []
-                if isinstance(node, ast.Import):
-                    names = [alias.name for alias in node.names]
-                elif isinstance(node, ast.ImportFrom):
-                    anchor = (
-                        package[: len(package) - node.level + 1] if node.level else []
-                    )
-                    if node.level > len(package):
-                        continue
-                    module = ".".join(anchor + ([node.module] if node.module else []))
-                    names = [module] + [
-                        f"{module}.{alias.name}".lstrip(".") for alias in node.names
-                    ]
-                for name in names:
-                    if name in modules:
-                        deps.add(modules[name])
-        return deps - set(coder.abs_fnames) - set(coder.abs_read_only_fnames)
+    def _context_tokens(self, coder):
+        """Count complete source/interface messages, including their instruction overhead."""
+        if callable(getattr(coder, "get_l2_interface_messages", None)):
+            return self._count(coder.get_l2_interface_messages() + coder.get_chat_files_messages())
+        # Standalone pagers supply text counters rather than a Coder message formatter.
+        source = "\n".join(
+            self._block(path, self.sources[path])
+            for path in sorted(coder.abs_fnames)
+            if path in self.sources
+        )
+        interfaces = self.interface_content(coder)
+        return self._count(source + interfaces + (INTERFACE_ACK if interfaces else ""))
 
     def _refresh(self, coder, expire=False):
         candidates = sorted(
-            (
-                path
-                for path in coder.abs_fnames
-                if path in self.sources and self._safe(path)
-            ),
+            (path for path in coder.abs_fnames if path in self.sources and self._safe(path)),
             key=lambda path: (
                 max(
                     self.states[path].last_referenced_turn,
@@ -450,9 +412,7 @@ class ContextPager:
             coder.l2_interface_fnames,
             key=lambda p: (-self.states.get(p, FileState()).last_referenced_turn, p),
         )
-        dependencies = sorted(self._dependencies(coder)) if self.automatic else []
-        selected = self._select_l2(coder, history + dependencies)
-        self.stats["preloads"] += len(selected - coder.l2_interface_fnames)
+        selected = self._select_l2(coder, history)
         coder.l2_interface_fnames = selected
         self.l2_paths = set(selected)
         l1 = self._l1_tokens(coder)
@@ -527,37 +487,35 @@ class ContextPager:
         self._observe(coder, self.turn + 1)
         state = self.states.get(path)
         if state is None or (
-            self.test_status == "failed" or state.pending or state.lint == "failed"
-            or state.test == "failed" or (state.edited and state.lint != "clean")
+            self.test_status == "failed"
+            or state.pending
+            or state.lint == "failed"
+            or state.test == "failed"
+            or (state.edited and state.lint != "clean")
         ):
             raise ValueError(
                 "The file has pending, failed, or unchecked edits; it must stay in L1."
             )
         if not self._demote(coder, path):
             raise ValueError(
-                "A complete interface is unavailable or exceeds the configured L2 cap."
+                "A complete interface is unavailable, exceeds the configured L2 cap, "
+                "or would not reduce context tokens."
             )
 
     def record_lint(self, coder, path, errors, status=None):
         path = self._path(path)
         if not path:
             return
-        state = self.states.setdefault(
-            path, FileState(last_referenced_turn=self.turn + 1)
-        )
+        state = self.states.setdefault(path, FileState(last_referenced_turn=self.turn + 1))
         source = self._read(coder, path)
-        outcome = status or (
-            "failed" if errors else "clean" if source is not None else "unknown"
-        )
+        outcome = status or ("failed" if errors else "clean" if source is not None else "unknown")
         if outcome != "unknown" or state.lint != "failed":
             state.lint = outcome
         state.lint_digest = self._digest(source) if source is not None else ""
 
     def record_test(self, coder, passed):
         if passed is not None or self.test_status != "failed":
-            self.test_status = (
-                "unknown" if passed is None else "clean" if passed else "failed"
-            )
+            self.test_status = "unknown" if passed is None else "clean" if passed else "failed"
         for path in coder.abs_fnames:
             path = self._path(path)
             if path:

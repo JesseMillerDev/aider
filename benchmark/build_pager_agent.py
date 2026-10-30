@@ -1,4 +1,4 @@
-"""Build an idle-only paging worker on the unchanged control Python runtime."""
+"""Build a demand-paging worker on the unchanged control Python runtime."""
 
 import argparse
 import hashlib
@@ -10,9 +10,8 @@ import tarfile
 from benchmark.ab_support import digest, read_json
 from benchmark.run_baseline import ROOT, atomic_json, command, image_id
 
-SOURCE = "40f82be43"
-IMAGE = "better-aider-pager:40f82be"
-BUILD_RECORD = ROOT / "benchmark/.cache/pager-build.json"
+SOURCE = "HEAD"
+BUILD_RECORD = ROOT / "benchmark/.cache/pager-demand-build.json"
 
 
 def preflight(image):
@@ -46,8 +45,14 @@ def preflight(image):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source", default=SOURCE)
-    parser.add_argument("--image", default=IMAGE)
+    parser.add_argument(
+        "--image", help="Default: unique tag derived from the selected source revision"
+    )
     args = parser.parse_args(argv)
+    if args.image is None:
+        args.image = "better-aider-pager-demand:" + command(
+            ["git", "rev-parse", "--short=12", args.source]
+        )
     baseline = read_json(ROOT / "benchmark/baselines/gpt-6.1-sol-subscription-50.json")
     base = baseline["configuration"]
     if image_id(base["agent_image"]) != base["agent_image_id"]:
@@ -129,9 +134,7 @@ def main(argv=None):
         ]
     )
     if freeze.splitlines() != control_freeze.splitlines():
-        raise ValueError(
-            "Treatment Python dependencies differ from the control runtime"
-        )
+        raise ValueError("Treatment Python dependencies differ from the control runtime")
     (context / "environment.txt").write_text(freeze + "\n", encoding="utf-8")
     record["agent_image_id"] = image_id(args.image)
     record["build_directory"] = str(context.relative_to(ROOT))

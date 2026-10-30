@@ -29,8 +29,12 @@ class FilesIO:
         self.warnings.append(message)
 
 
+def working_source(name="a"):
+    return f"def {name}():\n    implementation = " + repr("word " * 200) + "\n    return 1\n"
+
+
 def setup(tmp_path, files=None, active=None, **options):
-    files = files or {"a.py": "def a(x: int) -> int:\n    return x + 1\n"}
+    files = files or {"a.py": working_source()}
     for name, text in files.items():
         target = tmp_path / name
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -39,7 +43,7 @@ def setup(tmp_path, files=None, active=None, **options):
     coder = SimpleNamespace(
         root=str(tmp_path),
         io=FilesIO(),
-        abs_fnames={paths[name] for name in (active or list(files))},
+        abs_fnames={paths[name] for name in active or list(files)},
         abs_read_only_fnames=set(),
         l2_interface_fnames=set(),
         partial_response_content="",
@@ -92,7 +96,7 @@ def test_idle_inspected_file_demotes_while_recently_edited_file_stays(tmp_path):
     pager, coder, paths = setup(
         tmp_path,
         {
-            "a.py": "def a():\n    return 1\n",
+            "a.py": working_source(),
             "b.py": "def b():\n    return 1\n",
         },
         active=["a.py"],
@@ -101,9 +105,7 @@ def test_idle_inspected_file_demotes_while_recently_edited_file_stays(tmp_path):
     coder.abs_fnames.add(paths["b.py"])
     for value in (2, 3):
         pager.prepare(coder, "b.py")
-        Path(paths["b.py"]).write_text(
-            f"def b():\n    return {value}\n", encoding="utf-8"
-        )
+        Path(paths["b.py"]).write_text(f"def b():\n    return {value}\n", encoding="utf-8")
         pager.record_lint(coder, paths["b.py"], None)
         pager.step(coder)
     assert paths["a.py"] in coder.l2_interface_fnames
@@ -114,9 +116,7 @@ def test_idle_inspected_file_demotes_while_recently_edited_file_stays(tmp_path):
 
 
 @pytest.mark.parametrize("protection", ["lint", "unknown_edit", "test", "pending"])
-def test_unresolved_or_unchecked_edits_are_never_automatically_evicted(
-    tmp_path, protection
-):
+def test_unresolved_or_unchecked_edits_are_never_automatically_evicted(tmp_path, protection):
     pager, coder, paths = setup(tmp_path, l1_ttl_turns=1)
     pager.prepare(coder)
     if protection == "lint":
@@ -156,7 +156,7 @@ def test_current_file_references_reset_idle_clock(tmp_path):
 def test_file_count_budget_demotes_only_whole_files(tmp_path):
     pager, coder, paths = setup(
         tmp_path,
-        {f"{name}.py": f"def {name}():\n    return 42\n" for name in ("a", "b", "c")},
+        {f"{name}.py": working_source(name) for name in ("a", "b", "c")},
         max_l1_files=1,
     )
     before = {path: Path(path).read_bytes() for path in paths.values()}
@@ -168,8 +168,7 @@ def test_file_count_budget_demotes_only_whole_files(tmp_path):
 
 def test_l2_budget_counts_exact_rendered_block_and_never_truncates_contract(tmp_path):
     files = {
-        f"{name}.py": f"def {name}(x: int) -> int:\n    return x\n"
-        for name in ("a", "b", "c")
+        f"{name}.py": f"def {name}(x: int) -> int:\n    return x\n" for name in ("a", "b", "c")
     }
     pager, coder, _ = setup(tmp_path, files, max_l1_files=1, max_l2_tokens=60)
     pager.prepare(coder)
@@ -190,7 +189,7 @@ def test_protected_oversized_file_reports_overflow_instead_of_slicing(tmp_path):
     assert pager.stats["budget_overflows"] == 1
 
 
-def test_preloads_only_direct_local_imports_with_relative_and_src_packages(tmp_path):
+def test_imports_never_preload_or_scan_repository_dependencies(tmp_path):
     pager, coder, paths = setup(
         tmp_path,
         {
@@ -200,8 +199,9 @@ def test_preloads_only_direct_local_imports_with_relative_and_src_packages(tmp_p
         },
         active=["src/pkg/main.py"],
     )
-    pager.prepare(coder)
-    assert coder.l2_interface_fnames == {paths["src/pkg/dep.py"]}
+    with patch.object(coder, "get_all_abs_files", side_effect=AssertionError("no bulk scan")):
+        pager.prepare(coder)
+    assert not coder.l2_interface_fnames
     assert coder.abs_fnames == {paths["src/pkg/main.py"]}
 
 
@@ -212,9 +212,7 @@ def test_source_hash_invalidates_stub_with_preserved_mtime(tmp_path):
     path = Path(paths["a.py"])
     before = path.stat()
     assert "def a" in pager.render_l2_stub(path)
-    path.write_text(
-        "def replacement(value: str) -> str:\n    return value\n", encoding="utf-8"
-    )
+    path.write_text("def replacement(value: str) -> str:\n    return value\n", encoding="utf-8")
     os.utime(path, ns=(before.st_atime_ns, before.st_mtime_ns))
     assert "def replacement" in pager.render_l2_stub(path)
     assert "def a(" not in pager.render_l2_stub(path)
@@ -225,25 +223,24 @@ def test_external_edit_to_demoted_file_promotes_complete_source(tmp_path):
     turn(pager, coder)
     turn(pager, coder)
     assert paths["a.py"] in coder.l2_interface_fnames
-    Path(paths["a.py"]).write_text(
-        "def a():\n    return 'external'\n", encoding="utf-8"
-    )
+    Path(paths["a.py"]).write_text("def a():\n    return 'external'\n", encoding="utf-8")
     pager.prepare(coder)
     assert paths["a.py"] in coder.abs_fnames
     assert paths["a.py"] not in coder.l2_interface_fnames
     assert pager.states[paths["a.py"]].lint == "unknown"
 
 
-def test_drop_prevents_automatic_dependency_reloading(tmp_path):
+def test_explicit_drop_is_remembered_until_an_explicit_load(tmp_path):
     pager, coder, paths = setup(
         tmp_path,
         {
             "a.py": "import b\ndef a(): return b.run()\n",
-            "b.py": "def run(): return 1\n",
+            "b.py": working_source("run"),
         },
-        active=["a.py"],
+        active=["a.py", "b.py"],
     )
     pager.prepare(coder)
+    pager.demote_file(coder, paths["b.py"])
     assert paths["b.py"] in coder.l2_interface_fnames
     pager.forget(coder, paths["b.py"])
     pager.prepare(coder)
@@ -298,10 +295,7 @@ def test_cli_paging_is_opt_in_and_limits_are_positive(tmp_path):
         args.l1_ttl_turns,
     ) == (None, None, None, 2)
     assert (
-        parser.parse_args(
-            ["--enable-l2-paging", "--no-enable-l2-paging"]
-        ).enable_l2_paging
-        is False
+        parser.parse_args(["--enable-l2-paging", "--no-enable-l2-paging"]).enable_l2_paging is False
     )
     for flag in (
         "--max-l1-tokens",
@@ -313,9 +307,9 @@ def test_cli_paging_is_opt_in_and_limits_are_positive(tmp_path):
             parser.parse_args([flag, "0"])
 
 
-def real_coder(tmp_path, **kwargs):
+def real_coder(tmp_path, source_text=None, **kwargs):
     source = tmp_path / "a.py"
-    source.write_text("def a():\n    return 1\n", encoding="utf-8")
+    source.write_text(source_text or working_source(), encoding="utf-8")
     model = Model("gpt-3.5-turbo")
     return Coder.create(
         model,
@@ -331,9 +325,7 @@ def real_coder(tmp_path, **kwargs):
     )
 
 
-def test_real_coder_promotes_l2_and_rejects_the_entire_stale_edit_batch(
-    tmp_path, monkeypatch
-):
+def test_real_coder_promotes_l2_and_rejects_the_entire_stale_edit_batch(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     coder = real_coder(tmp_path, enable_l2_paging=True, l1_ttl_turns=1)
     pager = coder.context_pager
@@ -345,7 +337,7 @@ def test_real_coder_promotes_l2_and_rejects_the_entire_stale_edit_batch(
     assert str(source) in coder.abs_fnames
     assert str(source) not in coder.l2_interface_fnames
     assert coder.reflected_message
-    assert source.read_text(encoding="utf-8") == "def a():\n    return 1\n"
+    assert source.read_text(encoding="utf-8") == working_source()
 
 
 def test_real_coder_clone_preserves_independent_pager_state(tmp_path, monkeypatch):
@@ -419,15 +411,11 @@ def test_map_fallbacks_exclude_full_files_and_l2_interfaces(tmp_path, monkeypatc
         assert call.args[1] == {cold}
 
 
-def test_l2_prompts_are_read_only_and_precede_history_and_working_source(
-    tmp_path, monkeypatch
-):
+def test_l2_prompts_are_read_only_and_precede_history_and_working_source(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     coder = real_coder(tmp_path, enable_l2_paging=True)
     dependency = tmp_path / "b.py"
-    dependency.write_text(
-        "def b():\n    return 'hidden implementation'\n", encoding="utf-8"
-    )
+    dependency.write_text("def b():\n    return 'hidden implementation'\n", encoding="utf-8")
     coder.l2_interface_fnames = {str(dependency)}
     coder.done_messages = [{"role": "user", "content": "Earlier conversation"}]
     chunks = coder.format_chat_chunks()
@@ -470,7 +458,7 @@ def test_unavailable_lint_command_is_unknown_and_keeps_edited_source_full(tmp_pa
 def test_fences_in_docstrings_cannot_terminate_interface_blocks(tmp_path):
     pager, coder, _ = setup(
         tmp_path,
-        {"a.py": '"""Example:\n```python\nvalue = 1\n```\n"""\ndef a(): return 1\n'},
+        {"a.py": '"""Example:\n```python\nvalue = 1\n```\n"""\n' + working_source()},
         l1_ttl_turns=1,
     )
     turn(pager, coder)
@@ -542,7 +530,7 @@ def test_default_policy_keeps_large_active_context_until_it_is_idle(tmp_path):
 
 
 def test_default_l2_has_no_implicit_summary_token_cap(tmp_path):
-    source = '"""' + "contract " * 6500 + '"""\ndef work(): return 1\n'
+    source = '"""' + "contract " * 6500 + '"""\n' + working_source("work")
     pager, coder, paths = setup(tmp_path, {"a.py": source}, l1_ttl_turns=1)
     turn(pager, coder)
     turn(pager, coder)
@@ -558,7 +546,7 @@ def test_explicit_cap_does_not_enable_the_other_caps(tmp_path):
     assert args.max_l1_tokens is None and args.max_l2_tokens is None
     pager, coder, paths = setup(
         tmp_path,
-        {f"{name}.py": f"def {name}(): return 1\n" for name in ("a", "b", "c")},
+        {f"{name}.py": working_source(name) for name in ("a", "b", "c")},
         max_l1_files=1,
     )
     pager.prepare(coder)
@@ -573,3 +561,70 @@ def test_programmatic_optional_caps_reject_invalid_explicit_values(tmp_path, bad
             ContextPager(tmp_path, len, **{name: bad})
     with pytest.raises(ValueError, match="TTL"):
         ContextPager(tmp_path, len, l1_ttl_turns=bad)
+
+
+def test_imported_interfaces_do_not_inflate_the_complete_prompt(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    coder = real_coder(tmp_path, enable_l2_paging=True)
+    source = tmp_path / "a.py"
+    source.write_text("from dependency import target\ndef a(): return target()\n", encoding="utf-8")
+    dependency = tmp_path / "dependency.py"
+    dependency.write_text(
+        '"""' + "dependency contract " * 12000 + '"""\ndef target(): return 1\n',
+        encoding="utf-8",
+    )
+    control = coder.clone(enable_l2_paging=False)
+    files = [str(source), str(dependency)]
+    with (
+        patch.object(coder, "get_all_abs_files", return_value=files),
+        patch.object(control, "get_all_abs_files", return_value=files),
+        patch.object(coder.io, "read_text", wraps=coder.io.read_text) as reads,
+    ):
+        treatment_messages = coder.format_messages().all_messages()
+        control_messages = control.format_messages().all_messages()
+    assert not any(str(call.args[0]) == str(dependency) for call in reads.call_args_list)
+    assert treatment_messages == control_messages
+    assert not coder.l2_interface_fnames
+
+
+def test_idle_demotion_keeps_tiny_source_when_interface_increases_prompt(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    coder = real_coder(tmp_path, source_text="def a():\n    return 1\n", enable_l2_paging=True)
+    before = coder.format_messages().all_messages()
+    for _ in range(3):
+        turn(coder.context_pager, coder)
+    after = coder.format_messages().all_messages()
+    assert str(tmp_path / "a.py") in coder.abs_fnames
+    assert not coder.l2_interface_fnames
+    assert after == before
+    assert coder.context_pager.stats["unhelpful_demotions"] > 0
+
+
+def test_idle_replacement_reduces_the_complete_prompt_without_mutating_source(
+    tmp_path, monkeypatch
+):
+    monkeypatch.chdir(tmp_path)
+    coder = real_coder(tmp_path, enable_l2_paging=True)
+    path = tmp_path / "a.py"
+    original = path.read_bytes()
+    before = coder.main_model.token_count(coder.format_messages().all_messages())
+    for _ in range(3):
+        turn(coder.context_pager, coder)
+    after = coder.main_model.token_count(coder.format_messages().all_messages())
+    assert before > after > 0
+    assert str(path) in coder.l2_interface_fnames
+    assert path.read_bytes() == original
+
+
+@pytest.mark.parametrize("unknown", [None, 0])
+def test_unknown_demotion_cost_keeps_source_and_original_context(tmp_path, unknown):
+    pager, coder, paths = setup(tmp_path)
+    pager.prepare(coder)
+    pager.token_count = lambda text: (
+        unknown if "Read-only interface summaries" in text else len(text.split())
+    )
+    with pytest.raises(ValueError):
+        pager.demote_file(coder, paths["a.py"])
+    assert coder.abs_fnames == {paths["a.py"]}
+    assert not coder.l2_interface_fnames and not pager.l2_paths
+    assert not pager.stats["demotions"]

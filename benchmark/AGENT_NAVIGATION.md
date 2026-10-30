@@ -52,15 +52,16 @@ read-only. No action dispatches shell commands.
 
 ## Interaction with paging
 
-With navigation alone, there is no automatic dependency preloading or TTL
-demotion. File transitions are deliberate navigation actions. Enabling
-`--enable-l2-paging` also enables that feature's automatic policy. Optional size
-caps remain opt-in in either mode.
+Navigation never preloads imports. With navigation alone, file transitions are
+explicit actions and there is no TTL demotion. Enabling `--enable-l2-paging`
+also enables idle-file demotion, while dependency loading stays explicit.
+Optional size caps remain opt-in in either mode.
 
 Manual demotion bypasses idle age, but preserves files with pending operations,
 failed tests/lint, or unchecked edits. A file stays in L1 if a complete summary
-cannot be produced or fit a configured L2 cap. Navigation feedback does not mark
-newly inspected files as pending edits, and does not clear real pending failures.
+cannot be produced, fit a configured L2 cap, or reduce source/interface message
+cost. No arbitrary default size limits are introduced. Navigation feedback does
+not mark newly inspected files as pending edits or clear real pending failures.
 
 Source windows are deferred: all loads contain complete files, including when
 line hints are supplied. This preserves the existing whole-file edit contract.

@@ -90,6 +90,12 @@ created after a final response, so unused L2 content is not mistaken for model e
 
 ## Reproduce and monitor
 
+This section describes the recorded preloading treatment and its runner revision
+`892a1cba0`. The current runner uses the separate demand-paging policy, image and
+output directory described in [the upgrade guide](DEMAND_PAGING.md). Use the
+recorded runner revision when reproducing the historical arm; current defaults
+do not overwrite or resume this experiment.
+
 ```powershell
 .venv/Scripts/python.exe -m benchmark.build_pager_agent
 .venv/Scripts/python.exe -m benchmark.run_pager_benchmark --prepare-only

@@ -21,12 +21,15 @@ one fenced `aider-nav` block with up to three actions, one per line:
 /page_l1 "path/to/file" [start_line] [end_line]
 /demote_l2 "path/to/file"
 ```
-Use only the actions you need. Definition lookup loads the complete target file.
+Use only the actions you need. Edit directly when current files are sufficient.
+Definition lookup loads the complete target file.
 Page line numbers are location hints; whole files are loaded, without truncation.
 Reference results say whether they are semantic or syntactic. Ambiguous symbols
 require a file and position. A navigation response cannot also edit files: wait
 for navigation results, then generate edits against the complete file contents.
 Navigation uses the existing response/reflection budget.
+Demotion is refused when its complete interface does not reduce context tokens;
+keep short files full rather than repeatedly trying to demote them.
 """
 
 

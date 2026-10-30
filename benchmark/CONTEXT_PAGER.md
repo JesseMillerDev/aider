@@ -7,7 +7,7 @@ trace weighting or LSP diagnostic reflection.
 
 Explicit navigation is available separately through `--enable-agent-nav`; see
 [the navigation behavior and tests](AGENT_NAVIGATION.md). Navigation can use
-manual L1/L2 transitions without enabling automatic preloading or idle paging.
+manual L1/L2 transitions without enabling automatic idle paging.
 
 ```powershell
 .venv/Scripts/python.exe -m aider --model chatgpt/gpt-6.1-sol --enable-l2-paging
@@ -57,11 +57,11 @@ selected deterministically; signatures and docstrings are never truncated to fil
 last available tokens. Older L2 files may return to the cold repository map when space
 is needed under a configured cap. Without a cap, complete summaries are retained without
 size-based eviction. The model's overall context-window checks remain unchanged.
-Manual `/drop` also removes summaries and prevents immediate dependency
-preloading from adding those files back. `/add` restores full source through the usual
-file-addition flow. An external edit to a summarized file promotes it back to L1.
+Manual `/drop` removes both full source and summaries and remembers the drop.
+`/add` restores full source through the usual file-addition flow. An external
+edit to a summarized file promotes it back to L1.
 
-## Interfaces and preloading
+## Interfaces and demand loading
 
 Python summaries use the standard AST parser and preserve module/class/function
 docstrings, decorators, inheritance, full function and async-function arguments and
@@ -75,10 +75,23 @@ by a focused fixture. Unsupported declarations, unavailable parsers and malforme
 fall back to full L1 files; this is not a claim of complete interface extraction for every
 language. Unsupported forms or executable module-level code can reduce compression.
 
-Direct dependency preloading currently resolves Python imports against local repository
-files, including relative imports and `src/` layouts. It executes no project code, imports
-no project modules and makes no network requests. External modules are omitted. It loads
-only one import hop from L1; it does not recursively expand dependencies of L2 files.
+Dependencies are never loaded just because an active file imports them. The pager
+only summarizes files already in L1; it does not scan the repository for imports.
+Use the existing file-addition flow or explicit navigation to load files when
+needed. Large dependency interfaces therefore cannot inflate an otherwise
+unchanged active prompt automatically.
+
+Before any automatic or manual demotion, the pager compares the complete L1/L2
+message cost before and after the change, including interface instructions,
+acknowledgement, filename blocks and message framing. It keeps the full file if
+the locally estimated cost is unknown or does not strictly decrease. This is a
+replacement check, not a size cap. Tiny files or long-docstring summaries may
+remain full even when idle; this also makes an explicit L1 cap a target.
+
+The runtime check covers source/interface messages. The offline preflight also
+checks the assembled whole prompt, and the five-task gate uses actual provider
+input+output totals before allowing a fifty-task run. Model decisions, history
+and map changes can still affect task-level usage.
 
 Summary caches use source content hashes. Summaries are ordered by filename and placed
 after the repository map and before conversation history and full working files. Cache
@@ -130,6 +143,7 @@ This measures source compression only. It does not establish whole-conversation 
 savings or improved resolution. Preview measurements are under the ignored
 `benchmark/.cache/context-pager-compression.json`.
 
-Implementation verification made no inference requests. The separate
-[fifty-task paging run](PAGER_RUN.md) now isolates idle-only paging with LSP disabled
-and no size caps. The historical LSP treatment and its explicit timeout are preserved.
+Implementation verification made no inference requests. The [recorded historical
+paging run](PAGER_RUN.md#completed-result) used the earlier preloader and remains
+unchanged. The [demand-paging upgrade](DEMAND_PAGING.md) removes that behavior and
+requires measured net savings before scaling a new experiment.

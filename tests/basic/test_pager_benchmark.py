@@ -1,5 +1,6 @@
 """Paging experiment setup, gates and telemetry without external inference."""
 
+import hashlib
 from unittest.mock import Mock
 
 import pytest
@@ -14,9 +15,7 @@ from benchmark.run_pager_benchmark import ARM, SETTINGS, check_smoke, prepare
 def test_worker_passes_idle_only_defaults_and_preserves_stock_call_shape():
     assert coder_feature_options({}) == {}
     assert coder_feature_options({"enable_lsp_graph": False}) == {}
-    options = coder_feature_options(
-        {"enable_l2_paging": True, "enable_lsp_graph": False}
-    )
+    options = coder_feature_options({"enable_l2_paging": True, "enable_lsp_graph": False})
     assert options == {"enable_l2_paging": True, **SETTINGS}
     assert "enable_lsp_graph" not in options
     assert coder_feature_options({"enable_lsp_graph": True, "lsp_timeout": 10}) == {
@@ -32,20 +31,44 @@ def test_offline_fixture_demotes_after_idle_without_mutating_source():
     assert proof["stats"]["demotions"] == 6
     assert proof["stats"]["peak_l1_tokens"] > 16000
     assert proof["settings"] == SETTINGS
+    assert proof["context_policy"] == "demand"
+    assert proof["prompt_check"]["unchanged_active_prompt"]
+    assert proof["prompt_check"]["saved_tokens"] > 0
+    assert proof["prompt_check"]["dependency_preloads"] == 0
 
 
-def smoke_rows(tmp_path):
+def smoke_rows(tmp_path, monkeypatch):
+    from benchmark import run_pager_benchmark as runner
+
+    baseline_path = tmp_path / "baseline.json"
+    monkeypatch.setattr(runner, "BASELINE", baseline_path)
     manifest = {
         "experiment_id": "test",
         "smoke_instance_ids": [f"task{i}" for i in range(5)],
     }
+    atomic_json(
+        baseline_path,
+        {
+            "instances": [
+                {
+                    "instance_id": key,
+                    "resolved": False,
+                    "usage_complete": True,
+                    "total_input_tokens": 1200,
+                    "total_output_tokens": 100,
+                }
+                for key in manifest["smoke_instance_ids"]
+            ]
+        },
+    )
+    manifest["baseline_sha256"] = hashlib.sha256(baseline_path.read_bytes()).hexdigest()
     for key in manifest["smoke_instance_ids"]:
         request = {"l1_files": ["a.py"], "l2_files": ["b.py"]}
         pager = {
             "enabled": True,
             "settings": SETTINGS,
             "completed_responses": 2,
-            "stats": {"preloads": 1, "demotions": 0},
+            "stats": {"preloads": 0, "demotions": 0},
             "request_contexts": [request, request],
             "events": [{}, {}],
         }
@@ -56,28 +79,102 @@ def smoke_rows(tmp_path):
                 "resolved": False,
                 "usage_complete": True,
                 "total_turns": 2,
+                "total_input_tokens": 1000,
+                "total_output_tokens": 50,
                 "grading": {"engine": "swebench", "status": "empty_prediction"},
             },
         )
-        atomic_json(
-            tmp_path / "agents" / key / "telemetry.json", {"pager": pager, "lsp": None}
-        )
+        atomic_json(tmp_path / "agents" / key / "telemetry.json", {"pager": pager, "lsp": None})
     return manifest
 
 
-def test_smoke_accepts_l2_exposure_without_selecting_for_score_or_demotions(tmp_path):
-    manifest = smoke_rows(tmp_path)
+def test_smoke_accepts_measured_savings_without_requiring_demotion(tmp_path, monkeypatch):
+    manifest = smoke_rows(tmp_path, monkeypatch)
     gate = check_smoke(manifest, tmp_path)
     assert gate["requests_with_l2"] == 10 and gate["totals"]["demotions"] == 0
     assert not any(task["resolved"] for task in gate["tasks"])
 
 
+def test_smoke_allows_zero_l2_exposure_when_total_usage_is_lower(tmp_path, monkeypatch):
+    manifest = smoke_rows(tmp_path, monkeypatch)
+    for key in manifest["smoke_instance_ids"]:
+        path = tmp_path / "agents" / key / "telemetry.json"
+        data = read_json(path)
+        for request in data["pager"]["request_contexts"]:
+            request["l2_files"] = []
+        atomic_json(path, data)
+    assert check_smoke(manifest, tmp_path)["requests_with_l2"] == 0
+
+
+@pytest.mark.parametrize("inputs", [1250, 1400])
+def test_smoke_blocks_equal_or_higher_total_tokens(tmp_path, monkeypatch, inputs):
+    manifest = smoke_rows(tmp_path, monkeypatch)
+    for key in manifest["smoke_instance_ids"]:
+        path = tmp_path / ARM / (key + ".json")
+        row = read_json(path)
+        row["total_input_tokens"] = inputs
+        atomic_json(path, row)
+    with pytest.raises(ValueError, match="token"):
+        check_smoke(manifest, tmp_path)
+    gate = read_json(tmp_path / "smoke_gate.json")
+    assert gate["status"] == "blocked"
+
+
+def test_smoke_blocks_resolution_loss_despite_token_savings(tmp_path, monkeypatch):
+    manifest = smoke_rows(tmp_path, monkeypatch)
+    path = tmp_path / "baseline.json"
+    baseline = read_json(path)
+    baseline["instances"][0]["resolved"] = True
+    atomic_json(path, baseline)
+    manifest["baseline_sha256"] = hashlib.sha256(path.read_bytes()).hexdigest()
+    with pytest.raises(ValueError, match="resolution"):
+        check_smoke(manifest, tmp_path)
+    assert read_json(tmp_path / "smoke_gate.json")["status"] == "blocked"
+
+
+@pytest.mark.parametrize("smoke_only", [False, True])
+def test_failed_efficiency_gate_never_launches_remaining_tasks(tmp_path, monkeypatch, smoke_only):
+    from benchmark import run_pager_benchmark as runner
+
+    manifest = smoke_rows(tmp_path, monkeypatch)
+    for key in manifest["smoke_instance_ids"]:
+        path = tmp_path / ARM / (key + ".json")
+        row = read_json(path)
+        row["total_input_tokens"] = 2000
+        atomic_json(path, row)
+    monkeypatch.setattr(runner, "prepare", lambda *args: manifest)
+    run = Mock(return_value=Mock(returncode=0))
+    launch = Mock()
+    monkeypatch.setattr(runner.subprocess, "run", run)
+    monkeypatch.setattr(runner.subprocess, "Popen", launch)
+    args = ["--output", str(tmp_path)] + (["--smoke-only"] if smoke_only else [])
+    assert runner.main(args) == 1
+    launch.assert_not_called()
+    assert run.call_count == 1 and "grade" in run.call_args.args[0]
+    assert read_json(tmp_path / "run_status.json")["status"] == "blocked"
+
+
+def test_smoke_only_stops_after_passing_efficiency_gate(tmp_path, monkeypatch):
+    from benchmark import run_pager_benchmark as runner
+
+    manifest = smoke_rows(tmp_path, monkeypatch)
+    monkeypatch.setattr(runner, "prepare", lambda *args: manifest)
+    monkeypatch.setattr(runner.subprocess, "run", Mock(return_value=Mock(returncode=0)))
+    launch = Mock()
+    monkeypatch.setattr(runner.subprocess, "Popen", launch)
+    assert runner.main(["--output", str(tmp_path), "--smoke-only"]) == 0
+    launch.assert_not_called()
+    status = read_json(tmp_path / "run_status.json")
+    assert status["status"] == "smoke_passed"
+    assert status["measurement"]["saved_tokens"] > 0
+
+
 @pytest.mark.parametrize(
     "problem",
-    ["cap", "lsp", "missing_requests", "missing_steps", "overlap", "no_l2", "usage"],
+    ["cap", "lsp", "missing_requests", "missing_steps", "overlap", "preloads", "usage", "tokens"],
 )
-def test_smoke_stops_on_wrong_settings_or_incomplete_telemetry(tmp_path, problem):
-    manifest = smoke_rows(tmp_path)
+def test_smoke_stops_on_wrong_settings_or_incomplete_telemetry(tmp_path, monkeypatch, problem):
+    manifest = smoke_rows(tmp_path, monkeypatch)
     for key in manifest["smoke_instance_ids"]:
         path = tmp_path / "agents" / key / "telemetry.json"
         data = read_json(path)
@@ -91,13 +188,15 @@ def test_smoke_stops_on_wrong_settings_or_incomplete_telemetry(tmp_path, problem
             data["pager"]["events"].pop()
         elif problem == "overlap":
             data["pager"]["request_contexts"][0]["l2_files"] = ["a.py"]
-        elif problem == "no_l2":
-            for request in data["pager"]["request_contexts"]:
-                request["l2_files"] = []
+        elif problem == "preloads":
+            data["pager"]["stats"]["preloads"] = 1
         else:
             row_path = tmp_path / ARM / (key + ".json")
             row = read_json(row_path)
-            row["usage_complete"] = False
+            if problem == "tokens":
+                row["total_input_tokens"] = None
+            else:
+                row["usage_complete"] = False
             atomic_json(row_path, row)
         atomic_json(path, data)
     with pytest.raises(ValueError):
@@ -105,9 +204,7 @@ def test_smoke_stops_on_wrong_settings_or_incomplete_telemetry(tmp_path, problem
     assert not (tmp_path / "smoke_gate.json").exists()
 
 
-def test_prepare_rejects_a_different_subset_before_docker_or_inference(
-    tmp_path, monkeypatch
-):
+def test_prepare_rejects_a_different_subset_before_docker_or_inference(tmp_path, monkeypatch):
     from benchmark import run_pager_benchmark as runner
 
     task = {

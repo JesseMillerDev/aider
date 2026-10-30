@@ -1333,13 +1333,7 @@ class Coder:
         chunks.repo = self.get_repo_messages()
         chunks.readonly_files = self.get_readonly_files_messages()
         chunks.chat_files = self.get_chat_files_messages()
-        if self.context_pager is not None:
-            content = self.context_pager.interface_content(self)
-            if content:
-                chunks.interfaces = [
-                    dict(role="user", content=content),
-                    dict(role="assistant", content="I will request full contents before editing these files."),
-                ]
+        chunks.interfaces = self.get_l2_interface_messages()
 
         if self.gpt_prompts.system_reminder:
             reminder_message = [
@@ -1476,6 +1470,16 @@ class Coder:
             if not self.io.confirm_ask("Try to proceed anyway?"):
                 return False
         return True
+
+    def get_l2_interface_messages(self):
+        if self.context_pager is None:
+            return []
+        content = self.context_pager.interface_content(self)
+        if not content:
+            return []
+        from aider.context_pager import INTERFACE_ACK
+
+        return [dict(role="user", content=content), dict(role="assistant", content=INTERFACE_ACK)]
 
     def send_message(self, inp):
         pager = self.context_pager

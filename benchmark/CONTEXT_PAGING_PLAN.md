@@ -21,6 +21,12 @@ lookup and deliberate L1/L2 transitions independently of automatic paging. Sourc
 windows remain deferred to preserve whole-file edits. Trace weighting and
 edit-diagnostic reflection remain upcoming work.
 
+The [demand-paging upgrade](DEMAND_PAGING.md) removes automatic import preloading
+and rejects demotions that do not reduce source/interface message cost. Its
+offline check measures complete assembled prompts; the new five-task gate
+requires lower measured token use with no lower resolution count before scaling.
+The earlier fifty-task records remain unchanged.
+
 ## Assessment of prompt.md
 
 The proposed experiment is worth building. Its strongest idea is measuring localization and
