@@ -47,6 +47,9 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--phase", choices=("generate", "grade"), required=True)
     parser.add_argument(
+        "--limit", type=int, help="Maximum newly generated tasks for a smoke stage"
+    )
+    parser.add_argument(
         "--output", type=Path, default=Path("benchmark/results/baseline-50")
     )
     parser.add_argument(
@@ -63,7 +66,11 @@ def main(argv=None):
     )
     args = parser.parse_args(argv)
     output = args.output.resolve()
-    manifest = read_json(output / "baseline_manifest.json")
+    manifest_path = output / "run_manifest.json"
+    manifest = read_json(
+        manifest_path if manifest_path.exists() else output / "baseline_manifest.json"
+    )
+    arm = manifest.get("arm", ARMS[0])
     if image_id(manifest["agent_image"]) != manifest["agent_image_id"]:
         raise ValueError("The pinned agent image changed")
     if image_id(manifest["grader_image"]) != manifest["grader_image_id"]:
@@ -78,16 +85,23 @@ def main(argv=None):
         != manifest["dataset_sha256"]
     ):
         raise ValueError("The evaluator dataset changed")
+    for name, fingerprint in manifest.get("host_files_sha256", {}).items():
+        if hashlib.sha256((ROOT / name).read_bytes()).hexdigest() != fingerprint:
+            raise ValueError(f"The pinned runner source changed: {name}")
     with FileLock(str(output / (args.phase + ".lock")), timeout=1):
         stage_status(output, args.phase, "running", manifest)
         if args.phase == "generate":
             from aider.chatgpt_transport import ChatGPTTransport
 
             transport = ChatGPTTransport()
+            newly_generated = 0
             for task in manifest["tasks"]:
                 telemetry = output / "agents" / task["instance_id"] / "telemetry.json"
                 if telemetry.exists():
                     continue
+                if args.limit is not None and newly_generated >= args.limit:
+                    stage_status(output, args.phase, "partial", manifest)
+                    return 0
                 print(f"Generating {task['instance_id']}", flush=True)
                 try:
                     run_agent(manifest, task, output, transport)
@@ -102,6 +116,7 @@ def main(argv=None):
                     )
                     print(f"Generation stopped: {exc}", flush=True)
                     return 1
+                newly_generated += 1
                 stage_status(output, args.phase, "running", manifest)
                 print(
                     f"Generated {generated_count(manifest, output)}/{len(manifest['tasks'])}",
@@ -115,7 +130,7 @@ def main(argv=None):
             processed = False
             for task in manifest["tasks"]:
                 instance_id = task["instance_id"]
-                result_path = output / ARMS[0] / (instance_id + ".json")
+                result_path = output / arm / (instance_id + ".json")
                 if (
                     result_path.exists()
                     and read_json(result_path)["status"] == "completed"

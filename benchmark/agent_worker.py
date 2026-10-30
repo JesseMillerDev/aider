@@ -6,6 +6,8 @@ import json
 import os
 import subprocess
 import sys
+import time
+from collections import Counter
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -23,6 +25,22 @@ def run(job_path):
         "peak_l2_tokens": 0,
         "stop_reason": None,
     }
+    started = time.monotonic()
+    semantic_totals = Counter()
+    semantic_maps = []
+
+    def lsp_telemetry():
+        graph = getattr(coder.repo_map, "semantic_graph", None)
+        if graph is None:
+            return None
+        return {
+            "maps": semantic_maps,
+            "totals": dict(semantic_totals),
+            "bridge": dict(graph.bridge.stats),
+            "errors": dict(graph.bridge.errors),
+            "started_languages": sorted(graph.bridge.servers),
+            "unavailable_languages": sorted(graph.bridge.unavailable),
+        }
 
     def emit(kind, **data):
         protocol_out.write(json.dumps({"type": kind, **data}) + "\n")
@@ -35,7 +53,10 @@ def run(job_path):
     ):
         os.environ["AIDER_ANALYTICS"] = "false"
         Path.home().mkdir(parents=True, exist_ok=True)
-        subprocess.run(["git", "config", "--global", "--add", "safe.directory", "/source"], check=True)
+        subprocess.run(
+            ["git", "config", "--global", "--add", "safe.directory", "/source"],
+            check=True,
+        )
         subprocess.run(
             [
                 "git",
@@ -100,6 +121,8 @@ def run(job_path):
                     functions=functions,
                     extra_params=self.extra_params,
                     context=state["contexts"][state["turn"]],
+                    lsp=lsp_telemetry(),
+                    elapsed_seconds=time.monotonic() - started,
                 )
                 line = protocol_in.readline()
                 if not line:
@@ -139,6 +162,13 @@ def run(job_path):
             input_history_file=str(artifacts / "input.history"),
             chat_history_file=str(artifacts / "chat.md"),
         )
+        features = job.get("features", {})
+        feature_options = {}
+        if features.get("enable_lsp_graph"):
+            feature_options = {
+                "enable_lsp_graph": True,
+                "lsp_timeout": features["lsp_timeout"],
+            }
         coder = Coder.create(
             model,
             "diff",
@@ -153,7 +183,40 @@ def run(job_path):
             suggest_shell_commands=False,
             cache_prompts=False,
             num_cache_warming_pings=0,
+            **feature_options,
         )
+        graph = getattr(coder.repo_map, "semantic_graph", None)
+        if graph is not None:
+            original_prepare = graph.prepare
+            original_multiplier = graph.multiplier
+
+            def prepare(*args, **kwargs):
+                begin = time.monotonic()
+                try:
+                    return original_prepare(*args, **kwargs)
+                finally:
+                    stats = dict(graph.stats)
+                    semantic_totals.update(stats)
+                    semantic_maps.append(
+                        {
+                            "turn": state["turn"],
+                            "elapsed_seconds": time.monotonic() - begin,
+                            "stats": stats,
+                        }
+                    )
+
+            def multiplier(*args, **kwargs):
+                factor = original_multiplier(*args, **kwargs)
+                semantic_totals[
+                    (
+                        "boosted_edges"
+                        if factor > 1
+                        else "dampened_edges" if factor < 1 else "unchanged_edges"
+                    )
+                ] += 1
+                return factor
+
+            graph.prepare, graph.multiplier = prepare, multiplier
         coder.max_reflections = job["max_turns"]
         original_get_edits = coder.get_edits
         original_lint = coder.lint_edited
@@ -190,10 +253,16 @@ def run(job_path):
 
         coder.get_edits, coder.lint_edited = get_edits, lint
         coder.apply_updates = apply_updates
-        coder.run(
-            with_message="Please fix the following issue in this repository:\n\n"
-            + job["task"]["problem_statement"]
-        )
+        if job.get("preflight"):
+            coder.cur_messages = [
+                {"role": "user", "content": job["task"]["problem_statement"]}
+            ]
+            coder.get_repo_map(force_refresh=True)
+        else:
+            coder.run(
+                with_message="Please fix the following issue in this repository:\n\n"
+                + job["task"]["problem_statement"]
+            )
         final_context = context()
         subprocess.run(
             ["git", "add", "--intent-to-add", "--", "."],
@@ -214,7 +283,11 @@ def run(job_path):
             peak_l2_tokens=state["peak_l2_tokens"],
             stop_reason=state["stop_reason"],
             patch_sha256=hashlib.sha256(patch).hexdigest(),
+            lsp=lsp_telemetry(),
+            elapsed_seconds=time.monotonic() - started,
         )
+        if coder.repo_map:
+            coder.repo_map.close()
 
 
 if __name__ == "__main__":

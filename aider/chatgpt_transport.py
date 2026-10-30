@@ -144,6 +144,67 @@ def completed_text(response):
     )
 
 
+def _text_key(event):
+    index, item, content = (
+        event.get(name) for name in ("output_index", "item_id", "content_index")
+    )
+    if (
+        type(index) is int
+        and index >= 0
+        and isinstance(item, str)
+        and item
+        and type(content) is int
+        and content >= 0
+    ):
+        return index, item, content
+    return None
+
+
+def _compact_completed_text(deltas, text_events, item_events):
+    """A compact terminal event needs matching text and completed message seals."""
+    error = "ChatGPT compact completion has unverified or conflicting text"
+    sealed = {}
+    for event in text_events:
+        key = _text_key(event)
+        if key is None or key in sealed or not isinstance(event.get("text"), str):
+            raise ChatGPTError(error)
+        sealed[key] = event["text"]
+    expected, outputs, indices = set(), [], set()
+    for event in item_events:
+        item = event.get("item", {})
+        if item.get("type") != "message":
+            continue
+        index, item_id = event.get("output_index"), item.get("id")
+        if (
+            type(index) is not int
+            or index < 0
+            or index in indices
+            or not isinstance(item_id, str)
+            or not item_id
+            or item.get("status") != "completed"
+            or item.get("role") != "assistant"
+            or not isinstance(item.get("content"), list)
+        ):
+            raise ChatGPTError(error)
+        indices.add(index)
+        for content_index, part in enumerate(item["content"]):
+            if part.get("type") != "output_text":
+                continue
+            key = index, item_id, content_index
+            text = part.get("text")
+            if (
+                not isinstance(text, str)
+                or sealed.get(key) != text
+                or deltas.get(key, "") != text
+            ):
+                raise ChatGPTError(error)
+            expected.add(key)
+            outputs.append((index, content_index, text))
+    if not expected or set(sealed) != expected or not set(deltas).issubset(expected):
+        raise ChatGPTError(error)
+    return "".join(text for _, _, text in sorted(outputs))
+
+
 class ChatGPTStream:
     """Aider-compatible streaming object; final usage remains on the iterable."""
 
@@ -169,6 +230,7 @@ class ChatGPTStream:
 
     def _chunks(self):
         text = ""
+        deltas, text_events, item_events = {}, [], []
         completed = False
         try:
             for event in sse_events(self.response):
@@ -178,6 +240,8 @@ class ChatGPTStream:
                     if not isinstance(delta, str):
                         raise ChatGPTError("Invalid ChatGPT text delta")
                     text += delta
+                    key = _text_key(event)
+                    deltas[key] = deltas.get(key, "") + delta
                     yield SimpleNamespace(
                         choices=[
                             SimpleNamespace(
@@ -185,6 +249,10 @@ class ChatGPTStream:
                             )
                         ]
                     )
+                elif kind == "response.output_text.done":
+                    text_events.append(event)
+                elif kind == "response.output_item.done":
+                    item_events.append(event)
                 elif kind == "response.completed":
                     final = event.get("response", {})
                     if final.get("status") != "completed":
@@ -192,6 +260,10 @@ class ChatGPTStream:
                     self.usage = usage_record(final)
                     self.response_id = final.get("id")
                     full_text = completed_text(final)
+                    if text and not full_text and final.get("output") == []:
+                        full_text = _compact_completed_text(
+                            deltas, text_events, item_events
+                        )
                     if text and text != full_text:
                         raise ChatGPTError(
                             "ChatGPT streamed text differs from its completed response"

@@ -490,6 +490,96 @@ def test_stream_object_retains_final_usage_for_coder(transport):
     assert completion.response.closed
 
 
+def compact_events(
+    text="fixed", *, sealed_text=None, item_text=None, item_status="completed"
+):
+    key = {"output_index": 1, "item_id": "msg_test", "content_index": 0}
+    return [
+        {"type": "response.output_text.delta", **key, "delta": text},
+        {
+            "type": "response.output_text.done",
+            **key,
+            "text": text if sealed_text is None else sealed_text,
+        },
+        {
+            "type": "response.output_item.done",
+            "output_index": 1,
+            "item": {
+                "id": "msg_test",
+                "type": "message",
+                "role": "assistant",
+                "status": item_status,
+                "content": [
+                    {
+                        "type": "output_text",
+                        "text": text if item_text is None else item_text,
+                    }
+                ],
+            },
+        },
+        final_event(""),
+    ]
+
+
+def test_compact_completion_verifies_finished_text_and_message_items(transport):
+    events = compact_events("fix \U0001f9ea")
+    events[-1]["response"]["output"] = []
+    transport.http.post.return_value = Response(events=events)
+    _, response = transport.send_completion(SUPPORTED_MODEL, MESSAGES, stream=False)
+    assert response.choices[0].message.content == "fix \U0001f9ea"
+    assert response.usage.prompt_tokens == 100
+
+
+@pytest.mark.parametrize(
+    "options",
+    [
+        {"sealed_text": "different"},
+        {"item_text": "different"},
+        {"item_status": "in_progress"},
+    ],
+)
+def test_compact_completion_rejects_conflicting_or_unfinished_items(transport, options):
+    events = compact_events(**options)
+    events[-1]["response"]["output"] = []
+    transport.http.post.return_value = Response(events=events)
+    with pytest.raises(ChatGPTError):
+        transport.send_completion(SUPPORTED_MODEL, MESSAGES, stream=False)
+
+
+@pytest.mark.parametrize("missing", [1, 2])
+def test_compact_completion_requires_both_text_and_item_seals(transport, missing):
+    events = compact_events()
+    events[-1]["response"]["output"] = []
+    del events[missing]
+    transport.http.post.return_value = Response(events=events)
+    with pytest.raises(ChatGPTError):
+        transport.send_completion(SUPPORTED_MODEL, MESSAGES, stream=False)
+
+
+def test_compact_completion_preserves_multiple_message_and_content_order(transport):
+    first, second = compact_events("first"), compact_events("second")
+    for event in second[:-1]:
+        event["output_index"] = 3
+        if "item_id" in event:
+            event["item_id"] = "msg_second"
+        if "item" in event:
+            event["item"]["id"] = "msg_second"
+    events = first[:-1] + second
+    events[-1]["response"]["output"] = []
+    transport.http.post.return_value = Response(events=events)
+    _, response = transport.send_completion(SUPPORTED_MODEL, MESSAGES, stream=False)
+    assert response.choices[0].message.content == "firstsecond"
+
+
+def test_compact_completion_rejects_unsealed_extra_streamed_text(transport):
+    events = compact_events()
+    events.insert(0, {"type": "response.output_text.delta", "delta": "unsealed"})
+    events[-1]["response"]["output"] = []
+    transport.http.post.return_value = Response(events=events)
+    with pytest.raises(ChatGPTError):
+        transport.send_completion(SUPPORTED_MODEL, MESSAGES, stream=False)
+
+
 @pytest.mark.parametrize(
     "events",
     [
@@ -645,7 +735,9 @@ def test_real_coder_applies_mocked_subscription_patch_and_records_usage(
         assert send_events[-1]["total_cost"] is None
         with patch.object(coder.io, "tool_output") as output:
             coder.commands.cmd_tokens("")
-            token_display = "\n".join(str(call.args[0]) for call in output.call_args_list if call.args)
+            token_display = "\n".join(
+                str(call.args[0]) for call in output.call_args_list if call.args
+            )
             assert "Using ChatGPT plan" in token_display
             assert "$" not in token_display
         coder.add_cache_headers = True

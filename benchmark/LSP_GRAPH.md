@@ -1,8 +1,8 @@
 # Milestone 1: optional semantic repo-map edges
 
 The LSP graph is implemented behind `--enable-lsp-graph` and remains off by default.
-The frozen [50-task baseline](baselines/README.md) is unchanged. No treatment benchmark
-or claim of token/resolution improvement has been made yet.
+The frozen [50-task baseline](baselines/README.md) is unchanged. The LSP-only treatment
+is documented in [LSP_RUN.md](LSP_RUN.md); no completed treatment score is available yet.
 
 ## Run it
 

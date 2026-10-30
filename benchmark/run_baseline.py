@@ -196,6 +196,10 @@ def _run_agent(manifest, task, output, transport):
         "reasoning_effort": "medium",
         "max_turns": manifest["max_turns"],
     }
+    if "features" in manifest:
+        job["features"] = manifest["features"]
+    if manifest.get("preflight"):
+        job["preflight"] = True
     atomic_json(artifact_dir / "job.json", job)
     container = (
         "better-aider-agent-" + digest([manifest["experiment_id"], instance_id])[:16]
@@ -276,6 +280,7 @@ def _run_agent(manifest, task, output, transport):
 
 
 def grade(manifest, task, oracle_row, patch, output):
+    arm = manifest.get("arm", ARMS[0])
     instance_id = task["instance_id"]
     patch_hash = hashlib.sha256(patch).hexdigest()
     run_id = (
@@ -290,19 +295,14 @@ def grade(manifest, task, oracle_row, patch, output):
     atomic_json(directory / "dataset.json", [oracle_row])
     prediction = {
         "instance_id": instance_id,
-        "model_name_or_path": ARMS[0],
+        "model_name_or_path": arm,
         "model_patch": patch.decode("utf-8"),
     }
     (directory / "prediction.jsonl").write_text(
         json.dumps(prediction) + "\n", encoding="utf-8"
     )
     report = (
-        directory
-        / "logs/run_evaluation"
-        / run_id
-        / ARMS[0]
-        / instance_id
-        / "report.json"
+        directory / "logs/run_evaluation" / run_id / arm / instance_id / "report.json"
     )
     if not report.exists():
         args = [
@@ -364,9 +364,9 @@ def result_record(
     )
     return {
         "schema_version": 1,
-        "kind": "baseline_result",
+        "kind": "treatment_result" if manifest.get("features") else "baseline_result",
         "experiment_id": manifest["experiment_id"],
-        "arm": ARMS[0],
+        "arm": manifest.get("arm", ARMS[0]),
         "instance_id": task["instance_id"],
         "repo": task["repo"],
         "status": "completed",
@@ -386,11 +386,20 @@ def result_record(
         "localization_recall_at_turn_3": recall,
         "peak_l1_tokens": telemetry["peak_l1_tokens"],
         "peak_l2_tokens": telemetry["peak_l2_tokens"],
+        **({"lsp": telemetry["lsp"]} if telemetry.get("lsp") is not None else {}),
+        **(
+            {"elapsed_seconds": telemetry["elapsed_seconds"]}
+            if "elapsed_seconds" in telemetry
+            else {}
+        ),
     }
 
 
 def progress_report(manifest, output):
-    rows = [read_json(path) for path in (output / ARMS[0]).glob("*.json")]
+    rows = [
+        read_json(path)
+        for path in (output / manifest.get("arm", ARMS[0])).glob("*.json")
+    ]
     complete = [row for row in rows if row["status"] == "completed"]
     resolved = sum(row["resolved"] for row in complete)
     failures = [row for row in rows if row["status"] != "completed"]
@@ -407,15 +416,23 @@ def progress_report(manifest, output):
         ),
     }
     atomic_json(output / "progress.json", summary)
-    (output / "baseline_report.md").write_text(
-        f"# GPT-6.1 Sol baseline\n\nExperiment `{manifest['experiment_id']}`.\n\n"
+    treatment = bool(manifest.get("features"))
+    (
+        output / ("treatment_report.md" if treatment else "baseline_report.md")
+    ).write_text(
+        f"# GPT-6.1 Sol {'LSP-only treatment' if treatment else 'baseline'}\n\nExperiment `{manifest['experiment_id']}`.\n\n"
         f"Completed: {len(complete)}/{len(manifest['tasks'])}; resolved: {resolved}; infrastructure errors: {len(failures)}.\n\n"
         + (
             f"Pass@1: {100 * summary['pass_at_1']:.1f}%.\n"
             if summary["pass_at_1"] is not None
-            else "Pass@1 is withheld until all 50 planned instances have a result.\n"
+            else "Pass@1 is withheld until all planned instances have a result.\n"
         )
-        + "\nSubscription usage; API dollar cost is unavailable. No treatment comparison has run.\n",
+        + "\nSubscription usage; API dollar cost is unavailable.\n"
+        + (
+            "Historical control comparison is pending complete coverage.\n"
+            if treatment
+            else "No treatment comparison has run.\n"
+        ),
         encoding="utf-8",
     )
     return summary
