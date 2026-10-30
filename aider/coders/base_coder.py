@@ -340,7 +340,7 @@ class Coder:
         auto_copy_context=False,
         auto_accept_architect=True,
         enable_lsp_graph=False,
-        lsp_timeout=2.0,
+        lsp_timeout=10.0,
         lsp_bridge=None,
     ):
         # Fill in a dummy Analytics if needed, but it is never .enable()'d

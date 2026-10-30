@@ -343,7 +343,7 @@ def test_partial_evidence_keeps_unknown_weight():
 def test_cli_defaults_explicit_disable_and_timeout_validation(tmp_path):
     parser = get_parser([], str(tmp_path))
     assert parser.parse_args([]).enable_lsp_graph is False
-    assert parser.parse_args([]).lsp_timeout == 2.0
+    assert parser.parse_args([]).lsp_timeout == 10.0
     assert (
         parser.parse_args(
             ["--enable-lsp-graph", "--no-enable-lsp-graph"]

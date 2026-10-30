@@ -36,7 +36,7 @@ def uri_key(uri):
 
 
 class SemanticGraph:
-    def __init__(self, root, timeout=2.0, bridge=None):
+    def __init__(self, root, timeout=10.0, bridge=None):
         if not math.isfinite(timeout) or timeout <= 0:
             raise ValueError("LSP timeout must be positive and finite")
         self.root = Path(root).resolve()

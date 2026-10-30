@@ -260,8 +260,8 @@ def get_parser(default_config_files, git_root):
         help="Use bounded language-server evidence to enrich repo-map edges (default: False)",
     )
     group.add_argument(
-        "--lsp-timeout", type=positive_seconds, default=2.0, metavar="SECONDS",
-        help="Cold-start/query and per-map semantic enrichment budget in seconds (default: 2.0)",
+        "--lsp-timeout", type=positive_seconds, default=10.0, metavar="SECONDS",
+        help="Cold-start/query and per-map semantic enrichment budget in seconds (default: 10.0)",
     )
     group.add_argument(
         "--map-tokens",

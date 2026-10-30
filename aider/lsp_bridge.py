@@ -362,7 +362,7 @@ class _Server:
 
 
 class LSPBridge:
-    def __init__(self, root, timeout=2.0, commands=None, initialization_options=None):
+    def __init__(self, root, timeout=10.0, commands=None, initialization_options=None):
         if not math.isfinite(timeout) or timeout <= 0:
             raise ValueError("LSP timeout must be positive and finite")
         self.root = Path(root).resolve()

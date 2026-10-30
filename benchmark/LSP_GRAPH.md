@@ -13,8 +13,9 @@ With a suitable language server on PATH:
 .venv/Scripts/python.exe -m aider --model chatgpt/gpt-6.1-sol --enable-lsp-graph
 ```
 
-`--lsp-timeout 2.0` is the default. It bounds startup/query waits and supplies one shared
-semantic-enrichment budget per map, not a new two-second allowance for every symbol.
+`--lsp-timeout 10.0` is the default. It bounds startup/query waits and supplies one shared
+semantic-enrichment budget per map. The completed fifty-task treatment used an explicit
+`2.0`-second setting; its measurements and pinned reproduction settings remain unchanged.
 There is also a 64-definition-query cap per map. OS process cleanup may add bounded overhead.
 `--no-enable-lsp-graph` explicitly restores the stock graph path. With repo maps disabled
 (`--map-tokens 0`), no LSP bridge is created.

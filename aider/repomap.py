@@ -57,7 +57,7 @@ class RepoMap:
         map_mul_no_files=8,
         refresh="auto",
         enable_lsp_graph=False,
-        lsp_timeout=2.0,
+        lsp_timeout=10.0,
         lsp_bridge=None,
     ):
         self.io = io
