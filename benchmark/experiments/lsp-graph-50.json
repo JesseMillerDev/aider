@@ -1,0 +1,4477 @@
+{
+  "schema_version": 1,
+  "record_type": "milestone_treatment",
+  "recorded_at": "2026-10-30T02:30:25.878613+00:00",
+  "experiment_id": "bacd0701013355dd2b09",
+  "model": "chatgpt/gpt-6.1-sol",
+  "billing_mode": "chatgpt_subscription",
+  "configuration": {
+    "schema_version": 1,
+    "kind": "lsp_only_treatment",
+    "arm": "treatment_lsp_graph",
+    "model": "chatgpt/gpt-6.1-sol",
+    "control_experiment_id": "81472973655c74441877",
+    "baseline_sha256": "ab19808fbc4500fbc229330e68d66d634d8a407acfe1b443ef11c58aea420700",
+    "control_revision": "8400741ce7a9d26aecdbe97da423de5f3e80def1",
+    "treatment_revision": "3432f71f0f398013c00d87ac6d0c7359891b57f9",
+    "source_archive_sha256": "14d26df3027ac79eec70880c4b502f5177bdcacd8789aa88d2ea6278cf34dfe6",
+    "dockerfile_sha256": "7acdc713e906e62505c99efac5940f868ec2f8f5f870d3ef9887c87405cc3108",
+    "base_image_id": "sha256:943049c6bb55c885d8d9d59252b0c7d57fb0ea107c8a0afb02a1ceaeac369daa",
+    "tasks_sha256": "cb366de5c8f2dfd14dc1aef20043511304be9e1f40b808bc125b1962a547e52a",
+    "dataset_sha256": "7a21f37b8bc179c7db5beeb14e88ac538ba283455c776e6b2535bbfb6e3551b4",
+    "reasoning_effort": "medium",
+    "max_turns": 25,
+    "temperature": null,
+    "agent_image": "better-aider-lsp:3432f71",
+    "agent_image_id": "sha256:ed936211c85eb3eed2398e7f7efed1e677d3b78b059bf87a88a4bd1f91cc6b78",
+    "grader_image": "better-aider-swebench-grader:4.1.0",
+    "grader_image_id": "sha256:5695af350998c795fa05573456f7a4e00cbe13e65e98e4f77b570d0ed5835d77",
+    "worker_sha256": "9df96d298af30d3f53c14e1af8d2a44a732ffdc924a67234a2b76e51662afdd3",
+    "host_files_sha256": {
+      "benchmark/run_baseline.py": "43ee627a5c163bf03e24b39b6f208331252b719b3051d8a40f089665e0134acc",
+      "benchmark/run_pipeline.py": "0c3185f196e3ca7d08dd63035036b1e025cb35f8e06ae0351fe254aac4e7a084",
+      "benchmark/run_lsp_benchmark.py": "67f744b1a1a5e0dbeb114e3283770645bf12afa74d04fcef9b82bc01bde95fe3",
+      "benchmark/compare_lsp.py": "743b40621c4bd018dcc6f6014feb2a7fc1fcda1948fa1d304faa740a4805ccde",
+      "aider/chatgpt_transport.py": "82003b15bf70a7c82657a2eb58583e5fd72096f134dac6560bb97c339f2f2231"
+    },
+    "settings": {
+      "map_tokens": 1024,
+      "auto_lint": true,
+      "auto_test": false,
+      "auto_commits": false,
+      "suggest_shell_commands": false
+    },
+    "features": {
+      "enable_lsp_graph": true,
+      "lsp_timeout": 2.0
+    },
+    "language_servers": {
+      "pyright": "1.1.414",
+      "node": "v22.20.0"
+    },
+    "smoke_instance_ids": [
+      "matplotlib__matplotlib-25433",
+      "pytest-dev__pytest-7220",
+      "scikit-learn__scikit-learn-12471",
+      "django__django-12497",
+      "astropy__astropy-7746"
+    ],
+    "experiment_id": "bacd0701013355dd2b09"
+  },
+  "summary": {
+    "tasks": 50,
+    "resolved": 32,
+    "unresolved": 18,
+    "pass_at_1": 0.64,
+    "infrastructure_errors": 0,
+    "official_test_reports": 48,
+    "empty_predictions": 2,
+    "usage_complete_tasks": 50,
+    "total_input_tokens": 2163982,
+    "total_output_tokens": 41188,
+    "combined_tokens": 2205170,
+    "cached_input_tokens": 0,
+    "total_turns": 109,
+    "total_cost_usd": null,
+    "lsp_totals": {
+      "budget_exhausted": 5069,
+      "queries": 4661,
+      "unchanged_edges": 14060418,
+      "unknown_sites": 1372,
+      "resolved_sites": 4063,
+      "dampened_edges": 9613,
+      "boosted_edges": 1399,
+      "cache_hits": 774
+    },
+    "lsp_bridge": {
+      "started_servers": 42,
+      "queries": 4198,
+      "timeouts_or_disconnects": 83,
+      "missing_servers": 2,
+      "startup_failures": 5
+    }
+  },
+  "instances": [
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "matplotlib__matplotlib-25433",
+      "repo": "matplotlib/matplotlib",
+      "status": "completed",
+      "resolved": true,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-ec02de60c3fe7221be74f5b1",
+        "patch_sha256": "498a431aa04fb2ecfe5daa9a0cce9545fec05ec230faf356b8b8ac02001db480",
+        "status": "graded",
+        "report": "grading\\matplotlib__matplotlib-25433\\logs\\run_evaluation\\baseline-ec02de60c3fe7221be74f5b1\\treatment_lsp_graph\\matplotlib__matplotlib-25433\\report.json",
+        "report_sha256": "138cbc2cca97baef8e9a232eee372ed1b9b8f27996438f6bf404e9d473826428"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 59285,
+      "total_turns": 2,
+      "total_input_tokens": 58451,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 834,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 0,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 44626,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.3875117790012155,
+            "stats": {
+              "budget_exhausted": 1,
+              "queries": 0
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.1746116090034775,
+            "stats": {
+              "budget_exhausted": 1,
+              "queries": 0
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 2.1577196980033477,
+            "stats": {
+              "budget_exhausted": 1,
+              "queries": 0
+            }
+          }
+        ],
+        "totals": {
+          "budget_exhausted": 3,
+          "queries": 0,
+          "unchanged_edges": 402615
+        },
+        "bridge": {},
+        "errors": {},
+        "started_languages": [],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 94.65950057599912,
+      "base_commit": "7eafdd8af3c523c1c77b027d378fb337dd489f18",
+      "source_record_sha256": "ad43e08571d09546740552d28ec41881ef4edb29c502b86b0e60b8c6150f3691"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "pytest-dev__pytest-7220",
+      "repo": "pytest-dev/pytest",
+      "status": "completed",
+      "resolved": true,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-3e569b4af90e8e570bcf0dfe",
+        "patch_sha256": "b5a0b0250d5fbb40f922bf184af75a53ca82fd2d6febe2dc746acf4159a4d120",
+        "status": "graded",
+        "report": "grading\\pytest-dev__pytest-7220\\logs\\run_evaluation\\baseline-3e569b4af90e8e570bcf0dfe\\treatment_lsp_graph\\pytest-dev__pytest-7220\\report.json",
+        "report_sha256": "3b0f5703c5fe495f3e507f693276166008abe694a757d42142168120b26531e3"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 19820,
+      "total_turns": 2,
+      "total_input_tokens": 19124,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 696,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 0,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 5206,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.000557449999178,
+            "stats": {
+              "unknown_sites": 1,
+              "budget_exhausted": 21,
+              "queries": 1
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.000650680001854,
+            "stats": {
+              "resolved_sites": 55,
+              "unknown_sites": 7,
+              "budget_exhausted": 118,
+              "queries": 62
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 0.9239155979994393,
+            "stats": {
+              "resolved_sites": 52,
+              "unknown_sites": 12,
+              "budget_exhausted": 3,
+              "queries": 64
+            }
+          }
+        ],
+        "totals": {
+          "unknown_sites": 20,
+          "budget_exhausted": 142,
+          "queries": 127,
+          "unchanged_edges": 19361,
+          "resolved_sites": 107,
+          "dampened_edges": 166,
+          "boosted_edges": 42
+        },
+        "bridge": {
+          "started_servers": 1,
+          "queries": 127,
+          "timeouts_or_disconnects": 2
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 49.74074187400038,
+      "base_commit": "56bf819c2f4eaf8b36bd8c42c06bb59d5a3bfc0f",
+      "source_record_sha256": "3409b71c7a9741d457f7581dca59e60a9d96e1af240ddeb7d813422c4ce06513"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "scikit-learn__scikit-learn-12471",
+      "repo": "scikit-learn/scikit-learn",
+      "status": "completed",
+      "resolved": true,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-863238da6c850f8a31dbfb9c",
+        "patch_sha256": "92b012bc659cbb0e17bb9070445502d27adac63c3883b927d59b37df0e5fa31c",
+        "status": "graded",
+        "report": "grading\\scikit-learn__scikit-learn-12471\\logs\\run_evaluation\\baseline-863238da6c850f8a31dbfb9c\\treatment_lsp_graph\\scikit-learn__scikit-learn-12471\\report.json",
+        "report_sha256": "0ff1faff7f474e854885fa203466c8d8a8640b8cf42552bcea4e7407d5980be6"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 29129,
+      "total_turns": 2,
+      "total_input_tokens": 28517,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 612,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 0,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 14350,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.001064473999577,
+            "stats": {
+              "unknown_sites": 1,
+              "budget_exhausted": 54,
+              "queries": 1
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 1.0574878930019622,
+            "stats": {
+              "resolved_sites": 63,
+              "unknown_sites": 1,
+              "budget_exhausted": 20,
+              "queries": 64
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 2.001181250998343,
+            "stats": {
+              "resolved_sites": 6,
+              "unknown_sites": 1,
+              "budget_exhausted": 23,
+              "queries": 7
+            }
+          }
+        ],
+        "totals": {
+          "unknown_sites": 3,
+          "budget_exhausted": 97,
+          "queries": 72,
+          "unchanged_edges": 295526,
+          "resolved_sites": 69,
+          "dampened_edges": 231,
+          "boosted_edges": 31
+        },
+        "bridge": {
+          "started_servers": 1,
+          "queries": 72,
+          "timeouts_or_disconnects": 2
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 60.00181783500011,
+      "base_commit": "02dc9ed680e7f53f1b0d410dcdd37341c7958eb1",
+      "source_record_sha256": "ac439ff1ce61e9a5311916bf48c2cf5fe135a0536af2763513b60129200665f0"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "django__django-12497",
+      "repo": "django/django",
+      "status": "completed",
+      "resolved": true,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-37f2e2f60ad2c44cfa45e214",
+        "patch_sha256": "d66c41ac4dfe3eae13aae235540040296bee77a7baf07ee19cf6356cbc8cf3d7",
+        "status": "graded",
+        "report": "grading\\django__django-12497\\logs\\run_evaluation\\baseline-37f2e2f60ad2c44cfa45e214\\treatment_lsp_graph\\django__django-12497\\report.json",
+        "report_sha256": "eddc7db331028850f358951160117fb3799e260e60af1804af27d61edc0fe241"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 41382,
+      "total_turns": 2,
+      "total_input_tokens": 40902,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 480,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 0,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 26234,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 3.2920194969992735,
+            "stats": {
+              "budget_exhausted": 1,
+              "queries": 0
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 3.1344260170008056,
+            "stats": {
+              "budget_exhausted": 1,
+              "queries": 0
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 3.149880397999368,
+            "stats": {
+              "budget_exhausted": 1,
+              "queries": 0
+            }
+          }
+        ],
+        "totals": {
+          "budget_exhausted": 3,
+          "queries": 0,
+          "unchanged_edges": 572856
+        },
+        "bridge": {},
+        "errors": {},
+        "started_languages": [],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 86.44905999500043,
+      "base_commit": "a4881f5e5d7ee38b7e83301331a0b4962845ef8a",
+      "source_record_sha256": "d2f78f42a1b4e9d61e0459a7b70ea28b2d81953ae6d695721bacf254168319e1"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "astropy__astropy-7746",
+      "repo": "astropy/astropy",
+      "status": "completed",
+      "resolved": false,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-8d97157c673d61a54d719b38",
+        "patch_sha256": "fb49537e7f4f6b4155e46791ac636a3063806c2c5bffe8bdecc4de9c7d3ded49",
+        "status": "graded",
+        "report": "grading\\astropy__astropy-7746\\logs\\run_evaluation\\baseline-8d97157c673d61a54d719b38\\treatment_lsp_graph\\astropy__astropy-7746\\report.json",
+        "report_sha256": "fa98ea39a05d0d736f4df3e2acebd8551f108bb0be2f79ee2751e9334e470d14"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 119976,
+      "total_turns": 3,
+      "total_input_tokens": 201097,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 1279,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 1,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 76294,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.001349730999209,
+            "stats": {
+              "unknown_sites": 1,
+              "budget_exhausted": 49,
+              "queries": 1
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 2.0016480759986734,
+            "stats": {
+              "resolved_sites": 11,
+              "unknown_sites": 1,
+              "budget_exhausted": 56,
+              "queries": 12
+            }
+          },
+          {
+            "turn": 2,
+            "elapsed_seconds": 2.0016119280007842,
+            "stats": {
+              "unknown_sites": 1,
+              "budget_exhausted": 60,
+              "queries": 1
+            }
+          }
+        ],
+        "totals": {
+          "unknown_sites": 3,
+          "budget_exhausted": 165,
+          "queries": 14,
+          "unchanged_edges": 238126,
+          "resolved_sites": 11,
+          "dampened_edges": 15
+        },
+        "bridge": {
+          "started_servers": 1,
+          "queries": 14,
+          "timeouts_or_disconnects": 3
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 140.7949148100015,
+      "base_commit": "d5bd3f68bb6d5ce3a61bdce9883ee750d1afade5",
+      "source_record_sha256": "629416cbe17cf946f35f4a87edca16fbad70693dd5266a57065d390592aa4498"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "sympy__sympy-20442",
+      "repo": "sympy/sympy",
+      "status": "completed",
+      "resolved": true,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-672c4c54e700c793cb48c083",
+        "patch_sha256": "d3cac614abeaf14023af18463f4fb003ba16f8215dd40238f4f6f38d303a12dc",
+        "status": "graded",
+        "report": "grading\\sympy__sympy-20442\\logs\\run_evaluation\\baseline-672c4c54e700c793cb48c083\\treatment_lsp_graph\\sympy__sympy-20442\\report.json",
+        "report_sha256": "6cf41699e028ff88eb24ed958452d7b318a2ef6c802600bc82abef63ec51eab4"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 17681,
+      "total_turns": 2,
+      "total_input_tokens": 17198,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 483,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 0,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 3775,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.0014339850022225,
+            "stats": {
+              "resolved_sites": 12,
+              "unknown_sites": 1,
+              "budget_exhausted": 4,
+              "queries": 13
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 1.3546733729999687,
+            "stats": {
+              "cache_hits": 12,
+              "resolved_sites": 71,
+              "unknown_sites": 5,
+              "budget_exhausted": 3,
+              "queries": 64
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 2.001401484998496,
+            "stats": {
+              "resolved_sites": 48,
+              "unknown_sites": 2,
+              "budget_exhausted": 10,
+              "queries": 50
+            }
+          }
+        ],
+        "totals": {
+          "resolved_sites": 131,
+          "unknown_sites": 8,
+          "budget_exhausted": 17,
+          "queries": 127,
+          "unchanged_edges": 546766,
+          "dampened_edges": 196,
+          "boosted_edges": 16,
+          "cache_hits": 12
+        },
+        "bridge": {
+          "started_servers": 1,
+          "queries": 127,
+          "timeouts_or_disconnects": 2
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 68.29757229200186,
+      "base_commit": "1abbc0ac3e552cb184317194e5d5c5b9dd8fb640",
+      "source_record_sha256": "f928d73f425d35efe7609c4748376bc797d42c87ca0797974fc4ad5f6b52963e"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "sphinx-doc__sphinx-7738",
+      "repo": "sphinx-doc/sphinx",
+      "status": "completed",
+      "resolved": false,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-254164ff45fce5f9f8eea4db",
+        "patch_sha256": "110edb42476ad6577fb3bfa3371a6f7bb992e43781e44f90afaca2b80e5817b9",
+        "status": "graded",
+        "report": "grading\\sphinx-doc__sphinx-7738\\logs\\run_evaluation\\baseline-254164ff45fce5f9f8eea4db\\treatment_lsp_graph\\sphinx-doc__sphinx-7738\\report.json",
+        "report_sha256": "79aaefe69a43d821ea5b3e33a87cd7555d4222dc1f809e4053d01ef23a5acd5b"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 33845,
+      "total_turns": 2,
+      "total_input_tokens": 33216,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 629,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 0,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 18718,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.0011609030007094,
+            "stats": {
+              "unknown_sites": 1,
+              "budget_exhausted": 2,
+              "queries": 1
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.000960441000643,
+            "stats": {
+              "resolved_sites": 2,
+              "unknown_sites": 1,
+              "budget_exhausted": 73,
+              "queries": 3
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 2.000961942001595,
+            "stats": {
+              "unknown_sites": 1,
+              "budget_exhausted": 58,
+              "queries": 1
+            }
+          }
+        ],
+        "totals": {
+          "unknown_sites": 3,
+          "budget_exhausted": 133,
+          "queries": 5,
+          "unchanged_edges": 88021,
+          "resolved_sites": 2,
+          "dampened_edges": 35
+        },
+        "bridge": {
+          "started_servers": 1,
+          "queries": 5,
+          "timeouts_or_disconnects": 3
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 68.78274150300058,
+      "base_commit": "c087d717f6ed183dd422359bf91210dc59689d63",
+      "source_record_sha256": "3f5fa1a0716e1bf400f53087fee5fde5f3fdc043c4d6629457544b0e2b571b2e"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "psf__requests-3362",
+      "repo": "psf/requests",
+      "status": "completed",
+      "resolved": false,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-af1d897bc3ae2d8e271ef348",
+        "patch_sha256": "216714f0ee16de4568fd7173a57c892f20a8ab58a3bbc0559a81bfb5a6600a35",
+        "status": "graded",
+        "report": "grading\\psf__requests-3362\\logs\\run_evaluation\\baseline-af1d897bc3ae2d8e271ef348\\treatment_lsp_graph\\psf__requests-3362\\report.json",
+        "report_sha256": "cb0809413def4780b4b0acf50fa70cdce37dcd9a8eabed24ca8c960161ae8a81"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 34908,
+      "total_turns": 2,
+      "total_input_tokens": 34145,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 763,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 0,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 19897,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.0005443150002975,
+            "stats": {
+              "unknown_sites": 15,
+              "budget_exhausted": 2,
+              "queries": 15
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 1.403021603000525,
+            "stats": {
+              "unknown_sites": 25,
+              "resolved_sites": 39,
+              "budget_exhausted": 5,
+              "queries": 64
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 0.5774791119984002,
+            "stats": {
+              "unknown_sites": 7,
+              "resolved_sites": 57,
+              "budget_exhausted": 53,
+              "queries": 64
+            }
+          }
+        ],
+        "totals": {
+          "unknown_sites": 47,
+          "budget_exhausted": 60,
+          "queries": 143,
+          "unchanged_edges": 9239,
+          "resolved_sites": 96,
+          "boosted_edges": 52,
+          "dampened_edges": 75
+        },
+        "bridge": {
+          "missing_servers": 1,
+          "started_servers": 1,
+          "queries": 115,
+          "timeouts_or_disconnects": 1
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": [
+          "typescript"
+        ]
+      },
+      "elapsed_seconds": 48.96643981300076,
+      "base_commit": "36453b95b13079296776d11b09cab2567ea3e703",
+      "source_record_sha256": "3b58b76b684f10c3a0a431d79a3a23981126af1b944728855c24867a6102eafd"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "matplotlib__matplotlib-24334",
+      "repo": "matplotlib/matplotlib",
+      "status": "completed",
+      "resolved": true,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-5af0970d2c65cb9227a60b2a",
+        "patch_sha256": "43a603eef1e42d59029cb268660c33b6d36c86a900b93ecfe9522a06e8477a74",
+        "status": "graded",
+        "report": "grading\\matplotlib__matplotlib-24334\\logs\\run_evaluation\\baseline-5af0970d2c65cb9227a60b2a\\treatment_lsp_graph\\matplotlib__matplotlib-24334\\report.json",
+        "report_sha256": "894856685fa2226997355714f312ee63d9f0e44359818b179d5055e5e87bf9c6"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 123275,
+      "total_turns": 3,
+      "total_input_tokens": 236074,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 778,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 1,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 109152,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.001853416997619,
+            "stats": {
+              "unknown_sites": 2,
+              "budget_exhausted": 3,
+              "queries": 2
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.002264994000143,
+            "stats": {
+              "unknown_sites": 3,
+              "resolved_sites": 5,
+              "budget_exhausted": 11,
+              "queries": 8
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 2.003712177000125,
+            "stats": {
+              "unknown_sites": 1,
+              "budget_exhausted": 312,
+              "queries": 1
+            }
+          },
+          {
+            "turn": 2,
+            "elapsed_seconds": 2.00172180500158,
+            "stats": {
+              "unknown_sites": 1,
+              "budget_exhausted": 174,
+              "queries": 1
+            }
+          }
+        ],
+        "totals": {
+          "unknown_sites": 7,
+          "budget_exhausted": 500,
+          "queries": 12,
+          "unchanged_edges": 541991,
+          "resolved_sites": 5,
+          "dampened_edges": 4
+        },
+        "bridge": {
+          "started_servers": 1,
+          "queries": 10,
+          "timeouts_or_disconnects": 4
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 118.98662768099894,
+      "base_commit": "332937997d03e0c173be6d9fc1841e9186e857df",
+      "source_record_sha256": "499cff29d519d4a7b727f5f0701aebc537a636001affd75def9ef0f1a6f63dc1"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "pytest-dev__pytest-5221",
+      "repo": "pytest-dev/pytest",
+      "status": "completed",
+      "resolved": false,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-db0a1403da2d4b2fce6047c9",
+        "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "status": "empty_prediction",
+        "report": null,
+        "report_sha256": null
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": null,
+      "tokens_to_first_edit": null,
+      "total_turns": 2,
+      "total_input_tokens": 24986,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 166,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 0,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 11868,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.000455086999864,
+            "stats": {
+              "unknown_sites": 1,
+              "budget_exhausted": 15,
+              "queries": 1
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 1.6346219070001098,
+            "stats": {
+              "unknown_sites": 10,
+              "resolved_sites": 54,
+              "budget_exhausted": 82,
+              "queries": 64
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 1.1199756150017492,
+            "stats": {
+              "resolved_sites": 45,
+              "unknown_sites": 19,
+              "budget_exhausted": 124,
+              "queries": 64
+            }
+          }
+        ],
+        "totals": {
+          "unknown_sites": 30,
+          "budget_exhausted": 221,
+          "queries": 129,
+          "unchanged_edges": 16801,
+          "resolved_sites": 99,
+          "dampened_edges": 88,
+          "boosted_edges": 22
+        },
+        "bridge": {
+          "started_servers": 1,
+          "queries": 129,
+          "timeouts_or_disconnects": 1
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 28.348899249998794,
+      "base_commit": "4a2fdce62b73944030cff9b3e52862868ca9584d",
+      "source_record_sha256": "11211a563ea41e47afb527a15c32255b9690651781dcdbf9bb326a1ff0af94c8"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "scikit-learn__scikit-learn-15512",
+      "repo": "scikit-learn/scikit-learn",
+      "status": "completed",
+      "resolved": true,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-5da92a58b345079172277795",
+        "patch_sha256": "fbeb82cfc64abd30520c17af60792c21655d8df3d4a36d8c3370e0f08a651cad",
+        "status": "graded",
+        "report": "grading\\scikit-learn__scikit-learn-15512\\logs\\run_evaluation\\baseline-5da92a58b345079172277795\\treatment_lsp_graph\\scikit-learn__scikit-learn-15512\\report.json",
+        "report_sha256": "061cd75b97c2978753e86fe4dc2128793c29f05db7945cde776d1b66cc16184b"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 20700,
+      "total_turns": 2,
+      "total_input_tokens": 19586,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 1114,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 0,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 5613,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.000794801999291,
+            "stats": {
+              "unknown_sites": 1,
+              "budget_exhausted": 13,
+              "queries": 1
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.000727195001673,
+            "stats": {
+              "resolved_sites": 33,
+              "unknown_sites": 10,
+              "budget_exhausted": 6,
+              "queries": 43
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 2.0010214050016657,
+            "stats": {
+              "resolved_sites": 40,
+              "unknown_sites": 1,
+              "budget_exhausted": 10,
+              "queries": 41
+            }
+          }
+        ],
+        "totals": {
+          "unknown_sites": 12,
+          "budget_exhausted": 29,
+          "queries": 85,
+          "unchanged_edges": 337086,
+          "resolved_sites": 73,
+          "boosted_edges": 37,
+          "dampened_edges": 230
+        },
+        "bridge": {
+          "started_servers": 1,
+          "queries": 85,
+          "timeouts_or_disconnects": 2
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 67.49722401799954,
+      "base_commit": "b8a4da8baa1137f173e7035f104067c7d2ffde22",
+      "source_record_sha256": "663e90f15556c62440a6eec7551a0da91a161ab6733cdbfda3100fef24a17dde"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "django__django-12308",
+      "repo": "django/django",
+      "status": "completed",
+      "resolved": false,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-221416fccc836dd05c627af7",
+        "patch_sha256": "1e8185c008bf112b0cd935ca0b5de6116876cc54058367894f242d495bda4e08",
+        "status": "graded",
+        "report": "grading\\django__django-12308\\logs\\run_evaluation\\baseline-221416fccc836dd05c627af7\\treatment_lsp_graph\\django__django-12308\\report.json",
+        "report_sha256": "a8ccfc9eaee0d172d48518d9ccaef307a382c6015d3b0c217f58eb704e7b7f4d"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 21816,
+      "total_turns": 2,
+      "total_input_tokens": 21039,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 777,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 0,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 7553,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 5.203936286001408,
+            "stats": {
+              "budget_exhausted": 1,
+              "queries": 0
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 3.044213380999281,
+            "stats": {
+              "budget_exhausted": 1,
+              "queries": 0
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 2.0049002720006683,
+            "stats": {
+              "unknown_sites": 1,
+              "budget_exhausted": 50,
+              "queries": 1
+            }
+          }
+        ],
+        "totals": {
+          "budget_exhausted": 52,
+          "queries": 1,
+          "unchanged_edges": 576780,
+          "unknown_sites": 1
+        },
+        "bridge": {
+          "timeouts_or_disconnects": 1,
+          "startup_failures": 1
+        },
+        "errors": {
+          "python": "Server initialization unavailable or unsupported position encoding"
+        },
+        "started_languages": [],
+        "unavailable_languages": [
+          "python"
+        ]
+      },
+      "elapsed_seconds": 113.8006664880013,
+      "base_commit": "2e0f04507b17362239ba49830d26fec504d46978",
+      "source_record_sha256": "e95c278e6088b34536faa1cb42e042a859063776d8dee1b58c0e3274b17cc439"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "astropy__astropy-12907",
+      "repo": "astropy/astropy",
+      "status": "completed",
+      "resolved": true,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-6453ee6c308232038e53b5be",
+        "patch_sha256": "47e081eefb9a00f0f6d710e921cdfbf21e9e179793751d5f63b92862f6f6e16e",
+        "status": "graded",
+        "report": "grading\\astropy__astropy-12907\\logs\\run_evaluation\\baseline-6453ee6c308232038e53b5be\\treatment_lsp_graph\\astropy__astropy-12907\\report.json",
+        "report_sha256": "fe3f3bddc9631279d3babf7270913070d91e9207c3468bd947823aee3e7b1b86"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 17814,
+      "total_turns": 2,
+      "total_input_tokens": 17240,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 574,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 0,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 4177,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.001764226002706,
+            "stats": {
+              "unknown_sites": 1,
+              "budget_exhausted": 18,
+              "queries": 1
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.002004058998864,
+            "stats": {
+              "unknown_sites": 8,
+              "resolved_sites": 26,
+              "budget_exhausted": 9,
+              "queries": 34
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 2.0019621239989647,
+            "stats": {
+              "unknown_sites": 2,
+              "resolved_sites": 6,
+              "budget_exhausted": 10,
+              "queries": 8
+            }
+          }
+        ],
+        "totals": {
+          "unknown_sites": 11,
+          "budget_exhausted": 37,
+          "queries": 43,
+          "unchanged_edges": 314595,
+          "resolved_sites": 32,
+          "boosted_edges": 9,
+          "dampened_edges": 105
+        },
+        "bridge": {
+          "started_servers": 1,
+          "queries": 43,
+          "timeouts_or_disconnects": 3
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 99.22281223699974,
+      "base_commit": "d16bfe05a744909de4b27f5875fe0d4ed41ce607",
+      "source_record_sha256": "1f06b71516388c9548f3963247cbd376d61f6f7aabab7f43758c1f826f334a27"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "sympy__sympy-22005",
+      "repo": "sympy/sympy",
+      "status": "completed",
+      "resolved": true,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-08c888931d9caf52ed91fbb5",
+        "patch_sha256": "067bb6f1a022a012c6ccd689a83534ee3ae6336657ad554011b056171be6db30",
+        "status": "graded",
+        "report": "grading\\sympy__sympy-22005\\logs\\run_evaluation\\baseline-08c888931d9caf52ed91fbb5\\treatment_lsp_graph\\sympy__sympy-22005\\report.json",
+        "report_sha256": "6ec5595c0a616ea9f383c553561d7a20009d755434c81b32cb4e51911b738f0d"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 19812,
+      "total_turns": 2,
+      "total_input_tokens": 19329,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 483,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 0,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 5109,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.0024094199980027,
+            "stats": {
+              "unknown_sites": 1,
+              "budget_exhausted": 50,
+              "queries": 1
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 0.8672904650011333,
+            "stats": {
+              "unknown_sites": 40,
+              "resolved_sites": 24,
+              "budget_exhausted": 25,
+              "queries": 64
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 0.9886423659991124,
+            "stats": {
+              "resolved_sites": 37,
+              "unknown_sites": 27,
+              "budget_exhausted": 4,
+              "queries": 64
+            }
+          }
+        ],
+        "totals": {
+          "unknown_sites": 68,
+          "budget_exhausted": 79,
+          "queries": 129,
+          "unchanged_edges": 585275,
+          "resolved_sites": 61,
+          "dampened_edges": 102,
+          "boosted_edges": 13
+        },
+        "bridge": {
+          "started_servers": 1,
+          "queries": 129,
+          "timeouts_or_disconnects": 1
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 71.50530505999996,
+      "base_commit": "2c83657ff1c62fc2761b639469fdac7f7561a72a",
+      "source_record_sha256": "91f7569a591d92057df8f0ae570c7846637c5dfad11aea59c7df5eb308928d9e"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "sphinx-doc__sphinx-8506",
+      "repo": "sphinx-doc/sphinx",
+      "status": "completed",
+      "resolved": false,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-bbcbbf629577b47cf27978c4",
+        "patch_sha256": "247014ce40402a5c24a637b47aa7e2ae5a0859385467618063a5642221e90dc7",
+        "status": "graded",
+        "report": "grading\\sphinx-doc__sphinx-8506\\logs\\run_evaluation\\baseline-bbcbbf629577b47cf27978c4\\treatment_lsp_graph\\sphinx-doc__sphinx-8506\\report.json",
+        "report_sha256": "68bbd566d3b5316e0d528d1dd0914cf0717a2fece391c5e778ab4c477e6ec02a"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 29985,
+      "total_turns": 2,
+      "total_input_tokens": 29221,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 764,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 0,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 14311,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.0006680650003545,
+            "stats": {
+              "resolved_sites": 45,
+              "unknown_sites": 3,
+              "budget_exhausted": 16,
+              "queries": 48
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 0.978908589000639,
+            "stats": {
+              "cache_hits": 45,
+              "resolved_sites": 62,
+              "unknown_sites": 47,
+              "budget_exhausted": 1,
+              "queries": 64
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 0.5512081689994375,
+            "stats": {
+              "resolved_sites": 49,
+              "unknown_sites": 15,
+              "budget_exhausted": 2,
+              "queries": 64
+            }
+          }
+        ],
+        "totals": {
+          "resolved_sites": 156,
+          "unknown_sites": 65,
+          "budget_exhausted": 19,
+          "queries": 176,
+          "unchanged_edges": 92693,
+          "boosted_edges": 56,
+          "dampened_edges": 149,
+          "cache_hits": 45
+        },
+        "bridge": {
+          "started_servers": 1,
+          "queries": 132,
+          "timeouts_or_disconnects": 1,
+          "missing_servers": 1
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": [
+          "typescript"
+        ]
+      },
+      "elapsed_seconds": 45.39434334199905,
+      "base_commit": "e4bd3bd3ddd42c6642ff779a4f7381f219655c2c",
+      "source_record_sha256": "940be68731c84858aa965c9cf6de71b1335cf03b48a934259309153371758aed"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "psf__requests-1963",
+      "repo": "psf/requests",
+      "status": "completed",
+      "resolved": false,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-72e83fe4a8fa6462512def82",
+        "patch_sha256": "c7ca0d3529d7a3ecc592bbf7d2331d7a7da5573bc9ab4d4eb723d23836cb6452",
+        "status": "graded",
+        "report": "grading\\psf__requests-1963\\logs\\run_evaluation\\baseline-72e83fe4a8fa6462512def82\\treatment_lsp_graph\\psf__requests-1963\\report.json",
+        "report_sha256": "b9712623d74538a49a740e9478f0ae733e1ebc89adbc4a6c701f51bac99c43b5"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 29981,
+      "total_turns": 3,
+      "total_input_tokens": 48044,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 1084,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 1,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 14877,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 1.5039207529989653,
+            "stats": {
+              "resolved_sites": 51,
+              "unknown_sites": 13,
+              "budget_exhausted": 11,
+              "queries": 64
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 0.32273105599961127,
+            "stats": {
+              "cache_hits": 51,
+              "resolved_sites": 90,
+              "unknown_sites": 25,
+              "budget_exhausted": 5,
+              "queries": 64
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 0.33448100699752104,
+            "stats": {
+              "unknown_sites": 10,
+              "resolved_sites": 54,
+              "budget_exhausted": 12,
+              "queries": 64
+            }
+          },
+          {
+            "turn": 2,
+            "elapsed_seconds": 0.6328011069999775,
+            "stats": {
+              "unknown_sites": 10,
+              "resolved_sites": 54,
+              "budget_exhausted": 12,
+              "queries": 64
+            }
+          }
+        ],
+        "totals": {
+          "resolved_sites": 249,
+          "unknown_sites": 58,
+          "budget_exhausted": 40,
+          "queries": 256,
+          "unchanged_edges": 9337,
+          "boosted_edges": 126,
+          "dampened_edges": 187,
+          "cache_hits": 51
+        },
+        "bridge": {
+          "started_servers": 1,
+          "queries": 256
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 53.072121492001315,
+      "base_commit": "110048f9837f8441ea536804115e80b69f400277",
+      "source_record_sha256": "527a71f571dd0d945da0c01283fec63460d0e6cb5a24387f33bbd45a4d932d84"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "matplotlib__matplotlib-26020",
+      "repo": "matplotlib/matplotlib",
+      "status": "completed",
+      "resolved": true,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-0755d895c2f96a6a57ca8525",
+        "patch_sha256": "ed492af3b2298c9b0b77272b7a66941f9b80a843563f1954eca0232a4282d1e6",
+        "status": "graded",
+        "report": "grading\\matplotlib__matplotlib-26020\\logs\\run_evaluation\\baseline-0755d895c2f96a6a57ca8525\\treatment_lsp_graph\\matplotlib__matplotlib-26020\\report.json",
+        "report_sha256": "0798721a88b10ecaba15a52f8c69e44e6bf4c09325169c89721a665be2dc6671"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 38275,
+      "total_turns": 2,
+      "total_input_tokens": 37393,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 882,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 0,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 13905,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.0019798210014415,
+            "stats": {
+              "unknown_sites": 1,
+              "budget_exhausted": 25,
+              "queries": 1
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.0017662520003796,
+            "stats": {
+              "resolved_sites": 8,
+              "unknown_sites": 40,
+              "budget_exhausted": 8,
+              "queries": 48
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 2.0010797679969983,
+            "stats": {
+              "resolved_sites": 26,
+              "unknown_sites": 2,
+              "budget_exhausted": 26,
+              "queries": 28
+            }
+          }
+        ],
+        "totals": {
+          "unknown_sites": 43,
+          "budget_exhausted": 59,
+          "queries": 77,
+          "unchanged_edges": 401840,
+          "resolved_sites": 34,
+          "dampened_edges": 209,
+          "boosted_edges": 5
+        },
+        "bridge": {
+          "started_servers": 1,
+          "queries": 77,
+          "timeouts_or_disconnects": 3
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 80.13069217199882,
+      "base_commit": "f6a781f77f5ddf1204c60ca7c544809407d4a807",
+      "source_record_sha256": "ba4c15deaad5659108df47ca3b25d05532e4cca220cdf6675bd5f895afa2d570"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "pytest-dev__pytest-5227",
+      "repo": "pytest-dev/pytest",
+      "status": "completed",
+      "resolved": true,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-eb82d3a8e4bf3615368704b5",
+        "patch_sha256": "7e8da37e74955066d1c7c2e4dcc91374f1377f3140d6f11a70ccd7803b8dc274",
+        "status": "graded",
+        "report": "grading\\pytest-dev__pytest-5227\\logs\\run_evaluation\\baseline-eb82d3a8e4bf3615368704b5\\treatment_lsp_graph\\pytest-dev__pytest-5227\\report.json",
+        "report_sha256": "b96ff3dbb862107e693e31aeb76d29b6e86a302c344a17806a122cb6cd4070d7"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 26211,
+      "total_turns": 2,
+      "total_input_tokens": 25414,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 797,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 0,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 11987,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 1.766997918002744,
+            "stats": {
+              "resolved_sites": 45,
+              "unknown_sites": 19,
+              "budget_exhausted": 16,
+              "queries": 64
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 0.5610844170005294,
+            "stats": {
+              "cache_hits": 45,
+              "resolved_sites": 83,
+              "unknown_sites": 26,
+              "budget_exhausted": 15,
+              "queries": 64
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 1.3554749400027504,
+            "stats": {
+              "cache_hits": 69,
+              "resolved_sites": 103,
+              "unknown_sites": 30,
+              "budget_exhausted": 10,
+              "queries": 64
+            }
+          }
+        ],
+        "totals": {
+          "resolved_sites": 231,
+          "unknown_sites": 75,
+          "budget_exhausted": 41,
+          "queries": 192,
+          "unchanged_edges": 16647,
+          "boosted_edges": 59,
+          "dampened_edges": 205,
+          "cache_hits": 114
+        },
+        "bridge": {
+          "started_servers": 1,
+          "queries": 192
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 48.02208713800064,
+      "base_commit": "2051e30b9b596e944524ccb787ed20f9f5be93e3",
+      "source_record_sha256": "96369894732e52215481c968cd80c7ae3d32b7aa88ca2f16073419ec09d13c01"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "scikit-learn__scikit-learn-14983",
+      "repo": "scikit-learn/scikit-learn",
+      "status": "completed",
+      "resolved": true,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-ca2f626ec3d2322c452e86fb",
+        "patch_sha256": "4709292ab3961d83b9311566c6ae3a09da1141dd4e0c811f86667ca59d5fba74",
+        "status": "graded",
+        "report": "grading\\scikit-learn__scikit-learn-14983\\logs\\run_evaluation\\baseline-ca2f626ec3d2322c452e86fb\\treatment_lsp_graph\\scikit-learn__scikit-learn-14983\\report.json",
+        "report_sha256": "e3e9e0161e331c5039adaa465783d0a71746dc219c9a7327379b6c096d0b4c7e"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 50399,
+      "total_turns": 2,
+      "total_input_tokens": 49746,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 653,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 0,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 35789,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.0006410059977497,
+            "stats": {
+              "unknown_sites": 1,
+              "budget_exhausted": 31,
+              "queries": 1
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 0.4210668910018285,
+            "stats": {
+              "resolved_sites": 62,
+              "unknown_sites": 2,
+              "budget_exhausted": 12,
+              "queries": 64
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 0.9071291000000201,
+            "stats": {
+              "cache_hits": 62,
+              "resolved_sites": 121,
+              "unknown_sites": 5,
+              "budget_exhausted": 42,
+              "queries": 64
+            }
+          }
+        ],
+        "totals": {
+          "unknown_sites": 8,
+          "budget_exhausted": 85,
+          "queries": 129,
+          "unchanged_edges": 314051,
+          "resolved_sites": 183,
+          "dampened_edges": 356,
+          "boosted_edges": 38,
+          "cache_hits": 62
+        },
+        "bridge": {
+          "started_servers": 1,
+          "queries": 129,
+          "timeouts_or_disconnects": 1
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 51.00648511200052,
+      "base_commit": "06632c0d185128a53c57ccc73b25b6408e90bb89",
+      "source_record_sha256": "ec86ba4aa57fb64d2ff0833337981a27934632746ddcc527f8fed06eca54adec"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "django__django-11815",
+      "repo": "django/django",
+      "status": "completed",
+      "resolved": true,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-e5cdee004fb4a1a67f4d1a59",
+        "patch_sha256": "018410dfccb2a6206e7943e531bf36f540a2bb1d31ce9699974bc4bc02af98f8",
+        "status": "graded",
+        "report": "grading\\django__django-11815\\logs\\run_evaluation\\baseline-e5cdee004fb4a1a67f4d1a59\\treatment_lsp_graph\\django__django-11815\\report.json",
+        "report_sha256": "ef0c8ca466a996ac66bc7de721fe4f048b68c404ee9c385a39dbe108d01e3c03"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 23703,
+      "total_turns": 2,
+      "total_input_tokens": 22428,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 1275,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 0,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 9151,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 3.23768963099792,
+            "stats": {
+              "budget_exhausted": 1,
+              "queries": 0
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 3.3861074310007098,
+            "stats": {
+              "budget_exhausted": 1,
+              "queries": 0
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 2.9652556410001125,
+            "stats": {
+              "budget_exhausted": 1,
+              "queries": 0
+            }
+          }
+        ],
+        "totals": {
+          "budget_exhausted": 3,
+          "queries": 0,
+          "unchanged_edges": 566916
+        },
+        "bridge": {},
+        "errors": {},
+        "started_languages": [],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 135.86027174300034,
+      "base_commit": "e02f67ef2d03d48128e7a118bf75f0418e24e8ac",
+      "source_record_sha256": "42f82f5f079fddf4fb5440ab2041493bfbe1c8c8dd1808b28e714f25e8a0e10f"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "astropy__astropy-6938",
+      "repo": "astropy/astropy",
+      "status": "completed",
+      "resolved": true,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-f3e5ff72937fa4f2f633e1e4",
+        "patch_sha256": "9572a02ce9fb0f0ba524744ea551238543517404edf13c66da12e7c2bdbb8bc2",
+        "status": "graded",
+        "report": "grading\\astropy__astropy-6938\\logs\\run_evaluation\\baseline-f3e5ff72937fa4f2f633e1e4\\treatment_lsp_graph\\astropy__astropy-6938\\report.json",
+        "report_sha256": "4cfd655743d6cc20818d828a6ca470011d6c66fcffbcae2f90a8f71c9d565c91"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 1,
+      "tokens_to_first_edit": 14851,
+      "total_turns": 1,
+      "total_input_tokens": 14677,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 174,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 0,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 11542,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.0018602700001793,
+            "stats": {
+              "unknown_sites": 1,
+              "budget_exhausted": 67,
+              "queries": 1
+            }
+          }
+        ],
+        "totals": {
+          "unknown_sites": 1,
+          "budget_exhausted": 67,
+          "queries": 1,
+          "unchanged_edges": 76180
+        },
+        "bridge": {
+          "started_servers": 1,
+          "queries": 1,
+          "timeouts_or_disconnects": 1
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 78.41421427200112,
+      "base_commit": "c76af9ed6bb89bfba45b9f5bc1e635188278e2fa",
+      "source_record_sha256": "702f8dbf15c2fcf601adf0e1ead063b2cb59d0d318cba8913c8e7e24933d51f5"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "sympy__sympy-20590",
+      "repo": "sympy/sympy",
+      "status": "completed",
+      "resolved": true,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-86dcf9df48be56145337fd81",
+        "patch_sha256": "14a59adc03fda47acaa9771006e8801a99a667e7edc7d8bd4eed742255e72e0e",
+        "status": "graded",
+        "report": "grading\\sympy__sympy-20590\\logs\\run_evaluation\\baseline-86dcf9df48be56145337fd81\\treatment_lsp_graph\\sympy__sympy-20590\\report.json",
+        "report_sha256": "4bee6b00b1dbd512572852ae0fdaae65419422fd9defcd3fee2ae442607b3c20"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 3,
+      "tokens_to_first_edit": 24365,
+      "total_turns": 3,
+      "total_input_tokens": 23830,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 535,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 0,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 3642,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.001192103998619,
+            "stats": {
+              "resolved_sites": 12,
+              "unknown_sites": 7,
+              "budget_exhausted": 3,
+              "queries": 19
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.001765160999639,
+            "stats": {
+              "cache_hits": 12,
+              "resolved_sites": 58,
+              "unknown_sites": 16,
+              "budget_exhausted": 24,
+              "queries": 62
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 0.7481544399997802,
+            "stats": {
+              "resolved_sites": 62,
+              "unknown_sites": 2,
+              "budget_exhausted": 36,
+              "queries": 64
+            }
+          },
+          {
+            "turn": 2,
+            "elapsed_seconds": 0.5567331789970922,
+            "stats": {
+              "resolved_sites": 112,
+              "cache_hits": 62,
+              "unknown_sites": 14,
+              "budget_exhausted": 19,
+              "queries": 64
+            }
+          }
+        ],
+        "totals": {
+          "resolved_sites": 244,
+          "unknown_sites": 39,
+          "budget_exhausted": 82,
+          "queries": 209,
+          "unchanged_edges": 730425,
+          "dampened_edges": 1220,
+          "boosted_edges": 63,
+          "cache_hits": 74
+        },
+        "bridge": {
+          "started_servers": 1,
+          "queries": 209,
+          "timeouts_or_disconnects": 2
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 112.88665648100141,
+      "base_commit": "cffd4e0f86fefd4802349a9f9b19ed70934ea354",
+      "source_record_sha256": "ba7240fec92ec4379c22daf995e7102d455d58d90175bf404da249e6fb43eb4c"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "sphinx-doc__sphinx-8282",
+      "repo": "sphinx-doc/sphinx",
+      "status": "completed",
+      "resolved": false,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-14d7244c275baf924b80e621",
+        "patch_sha256": "da41ea39d0f090379fc2b13b927e5db7691fccb90d06c2e9f9ac0a4bb41144f7",
+        "status": "graded",
+        "report": "grading\\sphinx-doc__sphinx-8282\\logs\\run_evaluation\\baseline-14d7244c275baf924b80e621\\treatment_lsp_graph\\sphinx-doc__sphinx-8282\\report.json",
+        "report_sha256": "5749a8c9d026659ff99928692bc03fecd23b099f360949f31d1fc2d023b01f1f"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 52300,
+      "total_turns": 2,
+      "total_input_tokens": 51146,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 1154,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 0,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 36717,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.0007753650024824,
+            "stats": {
+              "unknown_sites": 2,
+              "budget_exhausted": 16,
+              "queries": 2
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.0009082289980142,
+            "stats": {
+              "unknown_sites": 14,
+              "resolved_sites": 31,
+              "budget_exhausted": 63,
+              "queries": 45
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 2.0008411950002483,
+            "stats": {
+              "resolved_sites": 45,
+              "unknown_sites": 17,
+              "budget_exhausted": 84,
+              "queries": 62
+            }
+          }
+        ],
+        "totals": {
+          "unknown_sites": 33,
+          "budget_exhausted": 163,
+          "queries": 109,
+          "unchanged_edges": 92486,
+          "resolved_sites": 76,
+          "dampened_edges": 172,
+          "boosted_edges": 15
+        },
+        "bridge": {
+          "started_servers": 1,
+          "queries": 109,
+          "timeouts_or_disconnects": 3
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 69.7630871989968,
+      "base_commit": "2c2335bbb8af99fa132e1573bbf45dc91584d5a2",
+      "source_record_sha256": "ce34057d1bb68edea13c05f35cbc74957f154a8c6e9d66faf83912e2acc7f620"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "psf__requests-863",
+      "repo": "psf/requests",
+      "status": "completed",
+      "resolved": false,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-98218849c5bc3b83e1df46a5",
+        "patch_sha256": "cfb2ec3439d46a2f74269a1dea4230ea9b2de3ea6217ca326524b167d0125e9d",
+        "status": "graded",
+        "report": "grading\\psf__requests-863\\logs\\run_evaluation\\baseline-98218849c5bc3b83e1df46a5\\treatment_lsp_graph\\psf__requests-863\\report.json",
+        "report_sha256": "0d5fcadee9d3e8839225d630e9fbb7a609cacd300f4c7987bfd7a667edf28e93"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 19223,
+      "total_turns": 2,
+      "total_input_tokens": 18970,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 253,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 0,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 5913,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.000374704999558,
+            "stats": {
+              "resolved_sites": 11,
+              "unknown_sites": 1,
+              "budget_exhausted": 5,
+              "queries": 12
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 0.7393458439983078,
+            "stats": {
+              "cache_hits": 11,
+              "resolved_sites": 63,
+              "unknown_sites": 12,
+              "budget_exhausted": 8,
+              "queries": 64
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 0.7710813949997828,
+            "stats": {
+              "resolved_sites": 60,
+              "unknown_sites": 4,
+              "budget_exhausted": 20,
+              "queries": 64
+            }
+          }
+        ],
+        "totals": {
+          "resolved_sites": 134,
+          "unknown_sites": 17,
+          "budget_exhausted": 33,
+          "queries": 140,
+          "unchanged_edges": 15337,
+          "boosted_edges": 57,
+          "dampened_edges": 59,
+          "cache_hits": 11
+        },
+        "bridge": {
+          "started_servers": 1,
+          "queries": 140,
+          "timeouts_or_disconnects": 1
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 25.62630475900005,
+      "base_commit": "a0df2cbb10419037d11d04352b3175405ab52941",
+      "source_record_sha256": "6b7b679ad181583249314f7a3fc862c013c529aec5feb12a0d2860f995dc660e"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "matplotlib__matplotlib-24265",
+      "repo": "matplotlib/matplotlib",
+      "status": "completed",
+      "resolved": true,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-8b2700a6b55c8f3aff1c5576",
+        "patch_sha256": "6857c54a20d39c6d8c465df9c07f13428f9c4f40c83c18b7285220f359b3bad2",
+        "status": "graded",
+        "report": "grading\\matplotlib__matplotlib-24265\\logs\\run_evaluation\\baseline-8b2700a6b55c8f3aff1c5576\\treatment_lsp_graph\\matplotlib__matplotlib-24265\\report.json",
+        "report_sha256": "21708bb1298990c0637c55d36a5aa6ab398879af3020b51e896d8af37ccaf5a2"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 17789,
+      "total_turns": 2,
+      "total_input_tokens": 16836,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 953,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 0,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 3903,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.001978235999559,
+            "stats": {
+              "unknown_sites": 1,
+              "budget_exhausted": 201,
+              "queries": 1
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.0020913740008837,
+            "stats": {
+              "budget_exhausted": 1,
+              "queries": 0
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 1.536553030997311,
+            "stats": {
+              "resolved_sites": 60,
+              "unknown_sites": 4,
+              "budget_exhausted": 6,
+              "queries": 64
+            }
+          }
+        ],
+        "totals": {
+          "unknown_sites": 5,
+          "budget_exhausted": 208,
+          "queries": 65,
+          "unchanged_edges": 408463,
+          "resolved_sites": 60,
+          "boosted_edges": 17,
+          "dampened_edges": 54
+        },
+        "bridge": {
+          "started_servers": 1,
+          "queries": 65,
+          "timeouts_or_disconnects": 1
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 131.23856981000063,
+      "base_commit": "e148998d9bed9d1b53a91587ad48f9bb43c7737f",
+      "source_record_sha256": "4d439cba8757b7f484e09223a90183edb100a499a70fa2a51697c5b88ddb2352"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "pytest-dev__pytest-5495",
+      "repo": "pytest-dev/pytest",
+      "status": "completed",
+      "resolved": true,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-f95c2e61d349e4f8c05ad8ef",
+        "patch_sha256": "a5e36bd72745bb594bd7fb494eddb8df3f0523930ee93838977d4417184d0bf5",
+        "status": "graded",
+        "report": "grading\\pytest-dev__pytest-5495\\logs\\run_evaluation\\baseline-f95c2e61d349e4f8c05ad8ef\\treatment_lsp_graph\\pytest-dev__pytest-5495\\report.json",
+        "report_sha256": "612016693d9708e22e8d096b8dc2af05d478f4fe3da0691bc84148edc59c4547"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 26995,
+      "total_turns": 2,
+      "total_input_tokens": 26080,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 915,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 0,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 12944,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.0005245380016277,
+            "stats": {
+              "resolved_sites": 1,
+              "unknown_sites": 1,
+              "budget_exhausted": 1,
+              "queries": 2
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 1.8757101179980964,
+            "stats": {
+              "cache_hits": 1,
+              "resolved_sites": 53,
+              "unknown_sites": 12,
+              "budget_exhausted": 1,
+              "queries": 64
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 0.9061677889985731,
+            "stats": {
+              "resolved_sites": 53,
+              "unknown_sites": 11,
+              "budget_exhausted": 24,
+              "queries": 64
+            }
+          }
+        ],
+        "totals": {
+          "resolved_sites": 107,
+          "unknown_sites": 24,
+          "budget_exhausted": 26,
+          "queries": 130,
+          "unchanged_edges": 16772,
+          "dampened_edges": 102,
+          "cache_hits": 1,
+          "boosted_edges": 34
+        },
+        "bridge": {
+          "started_servers": 1,
+          "queries": 130,
+          "timeouts_or_disconnects": 1
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 58.3301852020013,
+      "base_commit": "1aefb24b37c30fba8fd79a744829ca16e252f340",
+      "source_record_sha256": "56ff5b1731311cbbc50094dc5e496fcd0d711ee3784fb718c91f1c9ff362d47c"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "scikit-learn__scikit-learn-10297",
+      "repo": "scikit-learn/scikit-learn",
+      "status": "completed",
+      "resolved": true,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-abbee568f4137fcf8abe9ac5",
+        "patch_sha256": "fdf4b6d408704fe0bd50c959c84a21edb15f3dbfe3887a3101a72d67cae262d5",
+        "status": "graded",
+        "report": "grading\\scikit-learn__scikit-learn-10297\\logs\\run_evaluation\\baseline-abbee568f4137fcf8abe9ac5\\treatment_lsp_graph\\scikit-learn__scikit-learn-10297\\report.json",
+        "report_sha256": "86ec11cb4757760be7d3e93ea34c7807df48a449a193ee09bd254274d5bbd827"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 36819,
+      "total_turns": 3,
+      "total_input_tokens": 61999,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 1388,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 1,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 21051,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.0009511259995634,
+            "stats": {
+              "unknown_sites": 1,
+              "budget_exhausted": 4,
+              "queries": 1
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.000785223001003,
+            "stats": {
+              "resolved_sites": 5,
+              "unknown_sites": 1,
+              "budget_exhausted": 7,
+              "queries": 6
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 2.001042908999807,
+            "stats": {
+              "resolved_sites": 7,
+              "unknown_sites": 2,
+              "budget_exhausted": 37,
+              "queries": 9
+            }
+          },
+          {
+            "turn": 2,
+            "elapsed_seconds": 2.0020851730005234,
+            "stats": {
+              "resolved_sites": 7,
+              "unknown_sites": 2,
+              "budget_exhausted": 37,
+              "queries": 9
+            }
+          }
+        ],
+        "totals": {
+          "unknown_sites": 6,
+          "budget_exhausted": 85,
+          "queries": 25,
+          "unchanged_edges": 377402,
+          "resolved_sites": 19,
+          "boosted_edges": 11,
+          "dampened_edges": 323
+        },
+        "bridge": {
+          "started_servers": 1,
+          "queries": 25,
+          "timeouts_or_disconnects": 4
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 92.95677326000077,
+      "base_commit": "b90661d6a46aa3619d3eec94d5281f5888add501",
+      "source_record_sha256": "8978785b09cbacaed1dfa688c7d47f66ba90240cd1e0197e519d318c0b9d99d8"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "django__django-15819",
+      "repo": "django/django",
+      "status": "completed",
+      "resolved": true,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-382bd92ebfdde5914b6348ef",
+        "patch_sha256": "98af08dae5027a85a84db17331b69b076cc9705132e40fc1fa58ed8e9d7e10d6",
+        "status": "graded",
+        "report": "grading\\django__django-15819\\logs\\run_evaluation\\baseline-382bd92ebfdde5914b6348ef\\treatment_lsp_graph\\django__django-15819\\report.json",
+        "report_sha256": "5edad6d3a3d90359952728c2dd3c9af60f406931a03626624f2d1f6c77d3ef45"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 23163,
+      "total_turns": 2,
+      "total_input_tokens": 22253,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 910,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 0,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 9556,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.1685589799999434,
+            "stats": {
+              "budget_exhausted": 1,
+              "queries": 0
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.0030563899999834,
+            "stats": {
+              "unknown_sites": 1,
+              "budget_exhausted": 22,
+              "queries": 1
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 1.9217116390027513,
+            "stats": {
+              "unknown_sites": 64,
+              "budget_exhausted": 28,
+              "queries": 64
+            }
+          }
+        ],
+        "totals": {
+          "budget_exhausted": 51,
+          "queries": 65,
+          "unchanged_edges": 639210,
+          "unknown_sites": 65
+        },
+        "bridge": {
+          "timeouts_or_disconnects": 1,
+          "startup_failures": 1
+        },
+        "errors": {
+          "python": "Server initialization unavailable or unsupported position encoding"
+        },
+        "started_languages": [],
+        "unavailable_languages": [
+          "python"
+        ]
+      },
+      "elapsed_seconds": 86.88299502800146,
+      "base_commit": "877c800f255ccaa7abde1fb944de45d1616f5cc9",
+      "source_record_sha256": "36ab4b985835ab68070d5df3a067aae205c5be0d55e9f722626e689894ea1a75"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "astropy__astropy-14365",
+      "repo": "astropy/astropy",
+      "status": "completed",
+      "resolved": false,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-2e377e63b563f74a8fe89635",
+        "patch_sha256": "0a99686d2d7ff7eef8bda2d95066d096f823abc7a17bd084b2892bc7c0536b79",
+        "status": "graded",
+        "report": "grading\\astropy__astropy-14365\\logs\\run_evaluation\\baseline-2e377e63b563f74a8fe89635\\treatment_lsp_graph\\astropy__astropy-14365\\report.json",
+        "report_sha256": "8ed67fd48bf8a95ae8b52d8494f988fdf19cf2e27b37c5d832bf2a4ad75f6136"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 22318,
+      "total_turns": 2,
+      "total_input_tokens": 21768,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 550,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 0,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 8471,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.00117390000014,
+            "stats": {
+              "resolved_sites": 4,
+              "unknown_sites": 1,
+              "budget_exhausted": 13,
+              "queries": 5
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.00126911299958,
+            "stats": {
+              "cache_hits": 4,
+              "resolved_sites": 23,
+              "unknown_sites": 2,
+              "budget_exhausted": 81,
+              "queries": 21
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 2.0012600929985638,
+            "stats": {
+              "resolved_sites": 5,
+              "unknown_sites": 1,
+              "budget_exhausted": 15,
+              "queries": 6
+            }
+          }
+        ],
+        "totals": {
+          "resolved_sites": 32,
+          "unknown_sites": 4,
+          "budget_exhausted": 109,
+          "queries": 32,
+          "unchanged_edges": 292722,
+          "dampened_edges": 709,
+          "boosted_edges": 14,
+          "cache_hits": 4
+        },
+        "bridge": {
+          "started_servers": 1,
+          "queries": 32,
+          "timeouts_or_disconnects": 3
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 79.01143498400052,
+      "base_commit": "7269fa3e33e8d02485a647da91a5a2a60a06af61",
+      "source_record_sha256": "b8bd0302a3c8841c5b6eaa873ffca1a68966a020e7932a26a7fea25dfb79e6b4"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "sympy__sympy-13647",
+      "repo": "sympy/sympy",
+      "status": "completed",
+      "resolved": true,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-f4c4bbe61052de0c91f1e22a",
+        "patch_sha256": "7c630fa37e463c760e1c31b66fcf79f787127165d5b238e257ec0a3fb298aecc",
+        "status": "graded",
+        "report": "grading\\sympy__sympy-13647\\logs\\run_evaluation\\baseline-f4c4bbe61052de0c91f1e22a\\treatment_lsp_graph\\sympy__sympy-13647\\report.json",
+        "report_sha256": "887b7bc9266c8e6f1e0afbe6293098b14957181488421cd21bbea933b3b655cd"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 49323,
+      "total_turns": 2,
+      "total_input_tokens": 48727,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 596,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 0,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 35025,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.0036804860028496,
+            "stats": {
+              "unknown_sites": 1,
+              "budget_exhausted": 12,
+              "queries": 1
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.00119114699919,
+            "stats": {
+              "resolved_sites": 18,
+              "unknown_sites": 1,
+              "budget_exhausted": 5,
+              "queries": 19
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 0.646642002997396,
+            "stats": {
+              "resolved_sites": 58,
+              "unknown_sites": 6,
+              "budget_exhausted": 80,
+              "queries": 64
+            }
+          }
+        ],
+        "totals": {
+          "unknown_sites": 8,
+          "budget_exhausted": 97,
+          "queries": 84,
+          "unchanged_edges": 382125,
+          "resolved_sites": 76,
+          "dampened_edges": 297,
+          "boosted_edges": 27
+        },
+        "bridge": {
+          "started_servers": 1,
+          "queries": 84,
+          "timeouts_or_disconnects": 2
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 74.62652167799752,
+      "base_commit": "67e3c956083d0128a621f65ee86a7dacd4f9f19f",
+      "source_record_sha256": "1113b30c96aff20e380d15f2226a2689c9ac91753914d24fe67ee93c720f1dbd"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "sphinx-doc__sphinx-8435",
+      "repo": "sphinx-doc/sphinx",
+      "status": "completed",
+      "resolved": true,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-5cb51221c0cc6f34924807d0",
+        "patch_sha256": "a670c27120aa6c8ccd197b843dbad562128b89a1d6bcb0d7ffcfd69e89f70d15",
+        "status": "graded",
+        "report": "grading\\sphinx-doc__sphinx-8435\\logs\\run_evaluation\\baseline-5cb51221c0cc6f34924807d0\\treatment_lsp_graph\\sphinx-doc__sphinx-8435\\report.json",
+        "report_sha256": "90328953f550b5eeb1942b1170c798da5f8ebb46ccb4ea3f34e569e764510638"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 3,
+      "tokens_to_first_edit": 87942,
+      "total_turns": 4,
+      "total_input_tokens": 129907,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 2275,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 1,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 38825,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.0005591940025624,
+            "stats": {
+              "unknown_sites": 1,
+              "budget_exhausted": 17,
+              "queries": 1
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 1.28821917499954,
+            "stats": {
+              "unknown_sites": 14,
+              "resolved_sites": 50,
+              "budget_exhausted": 59,
+              "queries": 64
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 1.9846671710001829,
+            "stats": {
+              "resolved_sites": 48,
+              "unknown_sites": 16,
+              "budget_exhausted": 87,
+              "queries": 64
+            }
+          },
+          {
+            "turn": 2,
+            "elapsed_seconds": 2.003353367003001,
+            "stats": {
+              "cache_hits": 48,
+              "resolved_sites": 75,
+              "unknown_sites": 21,
+              "budget_exhausted": 83,
+              "queries": 48
+            }
+          },
+          {
+            "turn": 3,
+            "elapsed_seconds": 1.335309979996964,
+            "stats": {
+              "resolved_sites": 48,
+              "unknown_sites": 16,
+              "budget_exhausted": 88,
+              "queries": 64
+            }
+          }
+        ],
+        "totals": {
+          "unknown_sites": 68,
+          "budget_exhausted": 334,
+          "queries": 241,
+          "unchanged_edges": 153964,
+          "resolved_sites": 221,
+          "dampened_edges": 536,
+          "boosted_edges": 33,
+          "cache_hits": 48
+        },
+        "bridge": {
+          "started_servers": 1,
+          "queries": 241,
+          "timeouts_or_disconnects": 2
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 116.56529258199953,
+      "base_commit": "5d8d6275a54f2c5fb72b82383b5712c22d337634",
+      "source_record_sha256": "c6691590e305886db11d7786b01a40d87445d230f2268cc9190a5f225baf9b76"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "psf__requests-2317",
+      "repo": "psf/requests",
+      "status": "completed",
+      "resolved": false,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-28ad35a9a09d2b584fb66e6d",
+        "patch_sha256": "0a6b28b0a69035185512a4697360b5b0beb07504a141195c3187d333df8d241a",
+        "status": "graded",
+        "report": "grading\\psf__requests-2317\\logs\\run_evaluation\\baseline-28ad35a9a09d2b584fb66e6d\\treatment_lsp_graph\\psf__requests-2317\\report.json",
+        "report_sha256": "8227a317e33ad95ec75280c98c0d0ae7cbc0f4dd3f52b2e206ec29b7f7d7ab2c"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 1,
+      "tokens_to_first_edit": 8346,
+      "total_turns": 2,
+      "total_input_tokens": 16823,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 754,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 1,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 5004,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.0003472700009297,
+            "stats": {
+              "unknown_sites": 1,
+              "budget_exhausted": 48,
+              "queries": 1
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 2.0013488690019585,
+            "stats": {
+              "unknown_sites": 11,
+              "resolved_sites": 34,
+              "budget_exhausted": 31,
+              "queries": 45
+            }
+          }
+        ],
+        "totals": {
+          "unknown_sites": 12,
+          "budget_exhausted": 79,
+          "queries": 46,
+          "unchanged_edges": 5046,
+          "resolved_sites": 34,
+          "boosted_edges": 11,
+          "dampened_edges": 21
+        },
+        "bridge": {
+          "started_servers": 1,
+          "queries": 46,
+          "timeouts_or_disconnects": 1
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 43.576938936999795,
+      "base_commit": "091991be0da19de9108dbe5e3752917fea3d7fdc",
+      "source_record_sha256": "dd444d9e053183a042de15297b6e2b5cdd98141e4900a25ad56d262c539f1ece"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "matplotlib__matplotlib-24149",
+      "repo": "matplotlib/matplotlib",
+      "status": "completed",
+      "resolved": true,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-7c977d8dafda8b4ab698799d",
+        "patch_sha256": "24505dd056e9bc4d0b9f11c0df04af21ef64f88735c3b115c6f3062be8b17a12",
+        "status": "graded",
+        "report": "grading\\matplotlib__matplotlib-24149\\logs\\run_evaluation\\baseline-7c977d8dafda8b4ab698799d\\treatment_lsp_graph\\matplotlib__matplotlib-24149\\report.json",
+        "report_sha256": "86922271cce9685541ba9b00a1c8fcdaf7ff4b226e87dfb5743565e3862d4aae"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 175480,
+      "total_turns": 2,
+      "total_input_tokens": 174733,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 747,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 0,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 159952,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.0017842069973995,
+            "stats": {
+              "unknown_sites": 1,
+              "budget_exhausted": 64,
+              "queries": 1
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 1.9517661099998804,
+            "stats": {
+              "resolved_sites": 62,
+              "unknown_sites": 2,
+              "budget_exhausted": 43,
+              "queries": 64
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 2.0016720240018913,
+            "stats": {
+              "resolved_sites": 1,
+              "unknown_sites": 1,
+              "budget_exhausted": 239,
+              "queries": 2
+            }
+          }
+        ],
+        "totals": {
+          "unknown_sites": 4,
+          "budget_exhausted": 346,
+          "queries": 67,
+          "unchanged_edges": 408517,
+          "resolved_sites": 63,
+          "boosted_edges": 6,
+          "dampened_edges": 185
+        },
+        "bridge": {
+          "started_servers": 1,
+          "queries": 67,
+          "timeouts_or_disconnects": 2
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 81.51285619400005,
+      "base_commit": "af39f1edffcd828f05cfdd04f2e59506bb4a27bc",
+      "source_record_sha256": "a79ee62dcbf1ba2a2f86102868418053e8ec05cba0fa3978a1e6973c6f2394ac"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "pytest-dev__pytest-5103",
+      "repo": "pytest-dev/pytest",
+      "status": "completed",
+      "resolved": false,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-fb36ec4adfc2136359a596c9",
+        "patch_sha256": "44b72664749166725d254e5c107d53b1e1a2e7a63924a61dda5672e32146dd94",
+        "status": "graded",
+        "report": "grading\\pytest-dev__pytest-5103\\logs\\run_evaluation\\baseline-fb36ec4adfc2136359a596c9\\treatment_lsp_graph\\pytest-dev__pytest-5103\\report.json",
+        "report_sha256": "fa78d31937394a53f641ffad7095be60ea60c6674ca914991b11c4c8674dc414"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 36576,
+      "total_turns": 2,
+      "total_input_tokens": 33502,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 3074,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 0,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 20521,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.000664699000481,
+            "stats": {
+              "unknown_sites": 1,
+              "budget_exhausted": 142,
+              "queries": 1
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 0.6115065630001482,
+            "stats": {
+              "resolved_sites": 45,
+              "unknown_sites": 19,
+              "budget_exhausted": 124,
+              "queries": 64
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 1.538734336001653,
+            "stats": {
+              "resolved_sites": 58,
+              "unknown_sites": 6,
+              "budget_exhausted": 32,
+              "queries": 64
+            }
+          }
+        ],
+        "totals": {
+          "unknown_sites": 26,
+          "budget_exhausted": 298,
+          "queries": 129,
+          "unchanged_edges": 16812,
+          "resolved_sites": 103,
+          "dampened_edges": 139,
+          "boosted_edges": 26
+        },
+        "bridge": {
+          "started_servers": 1,
+          "queries": 129,
+          "timeouts_or_disconnects": 1
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 132.59174964799968,
+      "base_commit": "10ca84ffc56c2dd2d9dc4bd71b7b898e083500cd",
+      "source_record_sha256": "4c2d1a2aca47c426d04ca772f22b9e1e9e096132c5afbf9218d813d8315170aa"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "scikit-learn__scikit-learn-13497",
+      "repo": "scikit-learn/scikit-learn",
+      "status": "completed",
+      "resolved": true,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-911cc92e0c82698726094a01",
+        "patch_sha256": "e1d258ad246b165b21acc750453a7497e719ed83e33221b68053ed5ecfdf26b8",
+        "status": "graded",
+        "report": "grading\\scikit-learn__scikit-learn-13497\\logs\\run_evaluation\\baseline-911cc92e0c82698726094a01\\treatment_lsp_graph\\scikit-learn__scikit-learn-13497\\report.json",
+        "report_sha256": "f7f1a451cc83e5c2b64fa6452288ed3e2ac781c8d34aca3ef1381ad6a0eae045"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 21051,
+      "total_turns": 2,
+      "total_input_tokens": 20143,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 908,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 0,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 6392,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.0009606269995857,
+            "stats": {
+              "unknown_sites": 1,
+              "budget_exhausted": 13,
+              "queries": 1
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.00106629199945,
+            "stats": {
+              "unknown_sites": 10,
+              "resolved_sites": 33,
+              "budget_exhausted": 6,
+              "queries": 43
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 2.000957827000093,
+            "stats": {
+              "resolved_sites": 5,
+              "unknown_sites": 1,
+              "budget_exhausted": 20,
+              "queries": 6
+            }
+          }
+        ],
+        "totals": {
+          "unknown_sites": 12,
+          "budget_exhausted": 39,
+          "queries": 50,
+          "unchanged_edges": 303414,
+          "resolved_sites": 38,
+          "boosted_edges": 23,
+          "dampened_edges": 127
+        },
+        "bridge": {
+          "started_servers": 1,
+          "queries": 50,
+          "timeouts_or_disconnects": 3
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 63.92073155400067,
+      "base_commit": "26f690961a52946dd2f53bf0fdd4264b2ae5be90",
+      "source_record_sha256": "d0814982b924ba7d24319ec92bda34f74437bd8759bd28e5abf6a96e7853e366"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "django__django-11620",
+      "repo": "django/django",
+      "status": "completed",
+      "resolved": true,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-5720f0b8125cfd667aa70c41",
+        "patch_sha256": "06facc0d7ec13e7df321b936efacab6469d223257aa4256960170f3698c9ecac",
+        "status": "graded",
+        "report": "grading\\django__django-11620\\logs\\run_evaluation\\baseline-5720f0b8125cfd667aa70c41\\treatment_lsp_graph\\django__django-11620\\report.json",
+        "report_sha256": "0ad6d0aba879a6363eef211534d2337748dde866ce035be80fcd044a694e6744"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 30157,
+      "total_turns": 2,
+      "total_input_tokens": 29485,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 672,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 0,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 16619,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.1926986509970448,
+            "stats": {
+              "budget_exhausted": 1,
+              "queries": 0
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.0094987279990164,
+            "stats": {
+              "unknown_sites": 1,
+              "budget_exhausted": 2,
+              "queries": 1
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 1.9468157840019558,
+            "stats": {
+              "unknown_sites": 64,
+              "budget_exhausted": 22,
+              "queries": 64
+            }
+          }
+        ],
+        "totals": {
+          "budget_exhausted": 25,
+          "queries": 65,
+          "unchanged_edges": 565614,
+          "unknown_sites": 65
+        },
+        "bridge": {
+          "timeouts_or_disconnects": 1,
+          "startup_failures": 1
+        },
+        "errors": {
+          "python": "Server initialization unavailable or unsupported position encoding"
+        },
+        "started_languages": [],
+        "unavailable_languages": [
+          "python"
+        ]
+      },
+      "elapsed_seconds": 76.94106658400051,
+      "base_commit": "514efa3129792ec2abb2444f3e7aeb3f21a38386",
+      "source_record_sha256": "bb971357fe88b06de0f20ff4972dcd9913969e77aeeddbf9a8f4fc17c997bd44"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "astropy__astropy-14182",
+      "repo": "astropy/astropy",
+      "status": "completed",
+      "resolved": false,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-b5cfbced86c6bdd726906892",
+        "patch_sha256": "98bfe9c3e30c9e48f7b121d257c7f17690004e604c392316d35581ec54aaed26",
+        "status": "graded",
+        "report": "grading\\astropy__astropy-14182\\logs\\run_evaluation\\baseline-b5cfbced86c6bdd726906892\\treatment_lsp_graph\\astropy__astropy-14182\\report.json",
+        "report_sha256": "c916b93f99f25786c3a8f1c3064546c6df7f2054b7bc75d019209572a18c1530"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 16887,
+      "total_turns": 2,
+      "total_input_tokens": 16058,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 829,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 0,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 2082,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.0010264339980495,
+            "stats": {
+              "unknown_sites": 1,
+              "budget_exhausted": 17,
+              "queries": 1
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.001539313001558,
+            "stats": {
+              "resolved_sites": 55,
+              "unknown_sites": 7,
+              "budget_exhausted": 13,
+              "queries": 62
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 0.7623558509985742,
+            "stats": {
+              "resolved_sites": 104,
+              "unknown_sites": 15,
+              "cache_hits": 55,
+              "budget_exhausted": 2,
+              "queries": 64
+            }
+          }
+        ],
+        "totals": {
+          "unknown_sites": 23,
+          "budget_exhausted": 32,
+          "queries": 127,
+          "unchanged_edges": 325195,
+          "resolved_sites": 159,
+          "boosted_edges": 52,
+          "dampened_edges": 1060,
+          "cache_hits": 55
+        },
+        "bridge": {
+          "started_servers": 1,
+          "queries": 127,
+          "timeouts_or_disconnects": 2
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 103.66178850800134,
+      "base_commit": "a5917978be39d13cd90b517e1de4e7a539ffaa48",
+      "source_record_sha256": "2b8cb77e37bc15fea39b393e2e568c5ac8850d785ce7a7e391e6b9e92e524ea7"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "sympy__sympy-15678",
+      "repo": "sympy/sympy",
+      "status": "completed",
+      "resolved": true,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-c82be9592220902e5ce9523c",
+        "patch_sha256": "4ce58186617f32280ad69934c087c37969527db172e376a018a0afd08a6c60f4",
+        "status": "graded",
+        "report": "grading\\sympy__sympy-15678\\logs\\run_evaluation\\baseline-c82be9592220902e5ce9523c\\treatment_lsp_graph\\sympy__sympy-15678\\report.json",
+        "report_sha256": "3a98afbe4f6052b8165b5ecadb4667bf1dc4581f34bdd03518db982937430d28"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 21757,
+      "total_turns": 3,
+      "total_input_tokens": 33167,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 1178,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 1,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 7603,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.002057364999928,
+            "stats": {
+              "unknown_sites": 1,
+              "budget_exhausted": 49,
+              "queries": 1
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.002646292999998,
+            "stats": {
+              "resolved_sites": 36,
+              "unknown_sites": 9,
+              "budget_exhausted": 23,
+              "queries": 45
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 2.001806240998121,
+            "stats": {
+              "resolved_sites": 20,
+              "unknown_sites": 1,
+              "budget_exhausted": 27,
+              "queries": 21
+            }
+          },
+          {
+            "turn": 2,
+            "elapsed_seconds": 2.0018866139980673,
+            "stats": {
+              "unknown_sites": 1,
+              "budget_exhausted": 33,
+              "queries": 1
+            }
+          }
+        ],
+        "totals": {
+          "unknown_sites": 12,
+          "budget_exhausted": 132,
+          "queries": 68,
+          "unchanged_edges": 576737,
+          "resolved_sites": 56,
+          "dampened_edges": 282,
+          "boosted_edges": 14
+        },
+        "bridge": {
+          "started_servers": 1,
+          "queries": 68,
+          "timeouts_or_disconnects": 4
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 146.03608351100047,
+      "base_commit": "31c68eef3ffef39e2e792b0ec92cd92b7010eb2a",
+      "source_record_sha256": "e01ec0f090a93ca4128cd741d0aa66b014834431de903a20ce26292a45ada1d9"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "sphinx-doc__sphinx-11445",
+      "repo": "sphinx-doc/sphinx",
+      "status": "completed",
+      "resolved": true,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-1be153f02521642a97d36306",
+        "patch_sha256": "20a58b7af2d96c867a40dcbbb3292e439b9d087897e401e6370f86dc2ab67b69",
+        "status": "graded",
+        "report": "grading\\sphinx-doc__sphinx-11445\\logs\\run_evaluation\\baseline-1be153f02521642a97d36306\\treatment_lsp_graph\\sphinx-doc__sphinx-11445\\report.json",
+        "report_sha256": "dacc4ac7491f1c0e4351cb9c0d8c980807f31572c49af543a501a2be0eac5b58"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 16180,
+      "total_turns": 2,
+      "total_input_tokens": 15422,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 758,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 0,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 2191,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.0008249940001406,
+            "stats": {
+              "unknown_sites": 1,
+              "budget_exhausted": 24,
+              "queries": 1
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 1.2081224989997281,
+            "stats": {
+              "resolved_sites": 59,
+              "unknown_sites": 5,
+              "budget_exhausted": 19,
+              "queries": 64
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 1.197292397999263,
+            "stats": {
+              "resolved_sites": 118,
+              "cache_hits": 59,
+              "unknown_sites": 5,
+              "budget_exhausted": 14,
+              "queries": 64
+            }
+          }
+        ],
+        "totals": {
+          "unknown_sites": 11,
+          "budget_exhausted": 57,
+          "queries": 129,
+          "unchanged_edges": 73936,
+          "resolved_sites": 177,
+          "boosted_edges": 78,
+          "dampened_edges": 383,
+          "cache_hits": 59
+        },
+        "bridge": {
+          "started_servers": 1,
+          "queries": 129,
+          "timeouts_or_disconnects": 1
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 59.79264335600237,
+      "base_commit": "71db08c05197545944949d5aa76cd340e7143627",
+      "source_record_sha256": "7b9b8a7233d757dc97cc664112f82b7095675d93c0acfdc07d5eabfb60e4c94d"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "psf__requests-2148",
+      "repo": "psf/requests",
+      "status": "completed",
+      "resolved": false,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-00d9e2be0712ff01061a6bba",
+        "patch_sha256": "b0cdc8ddb5c194239de2870fa08ef5248824f40c1da51b3c21f8030b8711d95d",
+        "status": "graded",
+        "report": "grading\\psf__requests-2148\\logs\\run_evaluation\\baseline-00d9e2be0712ff01061a6bba\\treatment_lsp_graph\\psf__requests-2148\\report.json",
+        "report_sha256": "c1f91e863775e7cc4840f70d1079895a94b85cd806ed6ef85456c4089245972e"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 36160,
+      "total_turns": 3,
+      "total_input_tokens": 60455,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 1155,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 1,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 20128,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.000444150999101,
+            "stats": {
+              "resolved_sites": 8,
+              "unknown_sites": 6,
+              "budget_exhausted": 46,
+              "queries": 14
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 0.21854244499991182,
+            "stats": {
+              "cache_hits": 8,
+              "resolved_sites": 63,
+              "unknown_sites": 9,
+              "budget_exhausted": 3,
+              "queries": 64
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 0.5193753169987758,
+            "stats": {
+              "cache_hits": 60,
+              "resolved_sites": 103,
+              "unknown_sites": 21,
+              "budget_exhausted": 55,
+              "queries": 64
+            }
+          },
+          {
+            "turn": 2,
+            "elapsed_seconds": 0.6129719220007246,
+            "stats": {
+              "resolved_sites": 56,
+              "unknown_sites": 8,
+              "budget_exhausted": 5,
+              "queries": 64
+            }
+          }
+        ],
+        "totals": {
+          "resolved_sites": 230,
+          "unknown_sites": 44,
+          "budget_exhausted": 109,
+          "queries": 206,
+          "unchanged_edges": 9655,
+          "dampened_edges": 314,
+          "boosted_edges": 143,
+          "cache_hits": 68
+        },
+        "bridge": {
+          "started_servers": 1,
+          "queries": 206,
+          "timeouts_or_disconnects": 1
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 64.83488839100028,
+      "base_commit": "fe693c492242ae532211e0c173324f09ca8cf227",
+      "source_record_sha256": "273d73fd71cf1ccc9336b224d57713830b1b0915c227f5800d4fefb9e84ddb8a"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "matplotlib__matplotlib-23563",
+      "repo": "matplotlib/matplotlib",
+      "status": "completed",
+      "resolved": true,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-0c1fe05b6ccbd1fa03d65512",
+        "patch_sha256": "dc2058f07ef7ac0a946a20cdd3946d4688d16628e38f8a92e0572aedef60a743",
+        "status": "graded",
+        "report": "grading\\matplotlib__matplotlib-23563\\logs\\run_evaluation\\baseline-0c1fe05b6ccbd1fa03d65512\\treatment_lsp_graph\\matplotlib__matplotlib-23563\\report.json",
+        "report_sha256": "472df49dc594db59265840e522ef62d3ff238f15d077fae31b4ddb236e200057"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 24742,
+      "total_turns": 2,
+      "total_input_tokens": 24263,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 479,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 0,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 8158,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.0017145649981103,
+            "stats": {
+              "unknown_sites": 1,
+              "budget_exhausted": 93,
+              "queries": 1
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 3.0865697609988274,
+            "stats": {
+              "budget_exhausted": 1,
+              "queries": 0
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 2.7205193609988783,
+            "stats": {
+              "budget_exhausted": 1,
+              "queries": 0
+            }
+          }
+        ],
+        "totals": {
+          "unknown_sites": 1,
+          "budget_exhausted": 95,
+          "queries": 1,
+          "unchanged_edges": 407031
+        },
+        "bridge": {
+          "started_servers": 1,
+          "queries": 1,
+          "timeouts_or_disconnects": 1
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 77.41195467899888,
+      "base_commit": "149a0398b391cfc4eddb5e659f50b3c66f32ea65",
+      "source_record_sha256": "ccc6d48cbafde1800dff2a3ce8a33b9d61e5aa95e7e7cb2dcec94f1858698e1d"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "pytest-dev__pytest-5692",
+      "repo": "pytest-dev/pytest",
+      "status": "completed",
+      "resolved": true,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-35b798158ae7cf8d7c590765",
+        "patch_sha256": "0a39d4240de2e1f74403deb54f609c93e43468a39ec24b0e7a6910ffc2e0e5dc",
+        "status": "graded",
+        "report": "grading\\pytest-dev__pytest-5692\\logs\\run_evaluation\\baseline-35b798158ae7cf8d7c590765\\treatment_lsp_graph\\pytest-dev__pytest-5692\\report.json",
+        "report_sha256": "5572f22404e4ee5e9993fa78d1a3c7efc7ecb28d2a00b145e745c94b4e6d029e"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 29762,
+      "total_turns": 2,
+      "total_input_tokens": 29013,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 749,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 0,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 15373,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.0003464940018603,
+            "stats": {
+              "resolved_sites": 39,
+              "unknown_sites": 17,
+              "budget_exhausted": 2,
+              "queries": 56
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.0006920949999767,
+            "stats": {
+              "cache_hits": 39,
+              "resolved_sites": 60,
+              "unknown_sites": 18,
+              "budget_exhausted": 12,
+              "queries": 39
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 1.4074455830013903,
+            "stats": {
+              "resolved_sites": 44,
+              "unknown_sites": 20,
+              "budget_exhausted": 28,
+              "queries": 64
+            }
+          }
+        ],
+        "totals": {
+          "resolved_sites": 143,
+          "unknown_sites": 55,
+          "budget_exhausted": 42,
+          "queries": 159,
+          "unchanged_edges": 16924,
+          "boosted_edges": 56,
+          "dampened_edges": 57,
+          "cache_hits": 39
+        },
+        "bridge": {
+          "started_servers": 1,
+          "queries": 159,
+          "timeouts_or_disconnects": 2
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 52.08548599399728,
+      "base_commit": "29e336bd9bf87eaef8e2683196ee1975f1ad4088",
+      "source_record_sha256": "c3ade6ddb4b791596239ced10631e95407b828c47641e8c91043c5428420b00b"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "scikit-learn__scikit-learn-14894",
+      "repo": "scikit-learn/scikit-learn",
+      "status": "completed",
+      "resolved": true,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-847dffc1ee44a22595541fb2",
+        "patch_sha256": "70b451e391b5759bf6cda403935efc0c506e6543ce4c772374478986e1dfa111",
+        "status": "graded",
+        "report": "grading\\scikit-learn__scikit-learn-14894\\logs\\run_evaluation\\baseline-847dffc1ee44a22595541fb2\\treatment_lsp_graph\\scikit-learn__scikit-learn-14894\\report.json",
+        "report_sha256": "00c59c58c03dac998d0bf5abb3b51759dea2e8deabee1fe7b3c89e9a7971727f"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 27389,
+      "total_turns": 2,
+      "total_input_tokens": 26678,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 711,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 0,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 12819,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.0013738319976255,
+            "stats": {
+              "unknown_sites": 1,
+              "budget_exhausted": 13,
+              "queries": 1
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.0010463090002304,
+            "stats": {
+              "unknown_sites": 1,
+              "budget_exhausted": 13,
+              "queries": 1
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 2.0012670929972955,
+            "stats": {
+              "resolved_sites": 23,
+              "unknown_sites": 5,
+              "budget_exhausted": 25,
+              "queries": 28
+            }
+          }
+        ],
+        "totals": {
+          "unknown_sites": 7,
+          "budget_exhausted": 51,
+          "queries": 30,
+          "unchanged_edges": 338382,
+          "resolved_sites": 23,
+          "dampened_edges": 6,
+          "boosted_edges": 3
+        },
+        "bridge": {
+          "started_servers": 1,
+          "queries": 30,
+          "timeouts_or_disconnects": 3
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 89.07708002000072,
+      "base_commit": "fdbaa58acbead5a254f2e6d597dc1ab3b947f4c6",
+      "source_record_sha256": "cfe5ca061d87f10152f46199a70aaf2c015ea2e5a9ec9b9781f826b16b812c45"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "django__django-15400",
+      "repo": "django/django",
+      "status": "completed",
+      "resolved": false,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-19e66e6c9947d7d8ce55561f",
+        "patch_sha256": "db8c7f0214c1cd36af91202ea05397fac2adaa5268ab22ffa25944712cd9f4bf",
+        "status": "graded",
+        "report": "grading\\django__django-15400\\logs\\run_evaluation\\baseline-19e66e6c9947d7d8ce55561f\\treatment_lsp_graph\\django__django-15400\\report.json",
+        "report_sha256": "43941218a2ec4ca54c57af8cad61b8cf8fba7ce382d144064242f75bee879fe0"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 21877,
+      "total_turns": 2,
+      "total_input_tokens": 21429,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 448,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 0,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 6902,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.000724996003555,
+            "stats": {
+              "budget_exhausted": 1,
+              "queries": 0
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 4.1265325140011555,
+            "stats": {
+              "budget_exhausted": 1,
+              "queries": 0
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 2.001363618001051,
+            "stats": {
+              "unknown_sites": 1,
+              "budget_exhausted": 20,
+              "queries": 1
+            }
+          }
+        ],
+        "totals": {
+          "budget_exhausted": 22,
+          "queries": 1,
+          "unchanged_edges": 624756,
+          "unknown_sites": 1
+        },
+        "bridge": {
+          "started_servers": 1,
+          "queries": 1,
+          "timeouts_or_disconnects": 1
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 104.65740551899944,
+      "base_commit": "4c76ffc2d6c77c850b4bef8d9acc197d11c47937",
+      "source_record_sha256": "d8f92cc4d27e2dc600399f5defda612cf3f268ba750d86daa95e0dba184e11a4"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "astropy__astropy-14995",
+      "repo": "astropy/astropy",
+      "status": "completed",
+      "resolved": true,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-1e558641d86e8e111b9de0c5",
+        "patch_sha256": "eea7b2c1c0914e46a16b0a9bcd04fddd39e07550cd9f8c9e03ed6d43e943d3ea",
+        "status": "graded",
+        "report": "grading\\astropy__astropy-14995\\logs\\run_evaluation\\baseline-1e558641d86e8e111b9de0c5\\treatment_lsp_graph\\astropy__astropy-14995\\report.json",
+        "report_sha256": "408f2193940e31411fa4dc6063fe3d91f5a687f9c5df3f2c5f31a12eb392979b"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 37895,
+      "total_turns": 2,
+      "total_input_tokens": 37274,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 621,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 0,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 22365,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.009090389998164,
+            "stats": {
+              "unknown_sites": 1,
+              "budget_exhausted": 15,
+              "queries": 1
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 0.6341342360028648,
+            "stats": {
+              "unknown_sites": 64,
+              "budget_exhausted": 7,
+              "queries": 64
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 0.5156575450018863,
+            "stats": {
+              "unknown_sites": 64,
+              "budget_exhausted": 20,
+              "queries": 64
+            }
+          }
+        ],
+        "totals": {
+          "unknown_sites": 129,
+          "budget_exhausted": 42,
+          "queries": 129,
+          "unchanged_edges": 293040
+        },
+        "bridge": {
+          "timeouts_or_disconnects": 1,
+          "startup_failures": 1
+        },
+        "errors": {
+          "python": "Server initialization unavailable or unsupported position encoding"
+        },
+        "started_languages": [],
+        "unavailable_languages": [
+          "python"
+        ]
+      },
+      "elapsed_seconds": 86.10177451100026,
+      "base_commit": "b16c7d12ccbc7b2d20364b89fb44285bcbfede54",
+      "source_record_sha256": "1487067a6c1c83fce45eb6267380b83d1a7fb661ff9d010b75ef01b6065ae4fd"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "sympy__sympy-15345",
+      "repo": "sympy/sympy",
+      "status": "completed",
+      "resolved": false,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-3753916f8a103dabe6fe3a26",
+        "patch_sha256": "b0a73713e5e5f09323f363b35f042dabb64a3c510f9de00b0b0409608f04138a",
+        "status": "graded",
+        "report": "grading\\sympy__sympy-15345\\logs\\run_evaluation\\baseline-3753916f8a103dabe6fe3a26\\treatment_lsp_graph\\sympy__sympy-15345\\report.json",
+        "report_sha256": "f6e963bcf202ea06311d629e64bc06218c9e32b2300860bf7394cc5527fa4552"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 15668,
+      "total_turns": 2,
+      "total_input_tokens": 15264,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 404,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 0,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 2489,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.006695244999719,
+            "stats": {
+              "unknown_sites": 1,
+              "budget_exhausted": 26,
+              "queries": 1
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 0.5446231349997106,
+            "stats": {
+              "unknown_sites": 64,
+              "budget_exhausted": 11,
+              "queries": 64
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 0.8104753500010702,
+            "stats": {
+              "unknown_sites": 64,
+              "budget_exhausted": 2,
+              "queries": 64
+            }
+          }
+        ],
+        "totals": {
+          "unknown_sites": 129,
+          "budget_exhausted": 39,
+          "queries": 129,
+          "unchanged_edges": 424290
+        },
+        "bridge": {
+          "timeouts_or_disconnects": 1,
+          "startup_failures": 1
+        },
+        "errors": {
+          "python": "Server initialization unavailable or unsupported position encoding"
+        },
+        "started_languages": [],
+        "unavailable_languages": [
+          "python"
+        ]
+      },
+      "elapsed_seconds": 85.95440152099764,
+      "base_commit": "9ef28fba5b4d6d0168237c9c005a550e6dc27d81",
+      "source_record_sha256": "a4a1b23f1d89a465d17d5e412c7a03f7ecafa15f862afb43536f7a10efaa5ef8"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "sphinx-doc__sphinx-8801",
+      "repo": "sphinx-doc/sphinx",
+      "status": "completed",
+      "resolved": true,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-38f4dd7d6892a617aa156206",
+        "patch_sha256": "16cae825dd4b551f9b729c16b34ff77ace4f63f35de63dc122612e96d734b02e",
+        "status": "graded",
+        "report": "grading\\sphinx-doc__sphinx-8801\\logs\\run_evaluation\\baseline-38f4dd7d6892a617aa156206\\treatment_lsp_graph\\sphinx-doc__sphinx-8801\\report.json",
+        "report_sha256": "d98bcea0ae2f7c57efe8176eebea0d5933e66d0a0c29e17585c811060aed9609"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 41166,
+      "total_turns": 2,
+      "total_input_tokens": 40050,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 1116,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 0,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 26940,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.0009439979985473,
+            "stats": {
+              "unknown_sites": 1,
+              "budget_exhausted": 17,
+              "queries": 1
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 1.0247359480017622,
+            "stats": {
+              "unknown_sites": 6,
+              "resolved_sites": 58,
+              "budget_exhausted": 65,
+              "queries": 64
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 1.1087172420011484,
+            "stats": {
+              "resolved_sites": 48,
+              "unknown_sites": 16,
+              "budget_exhausted": 107,
+              "queries": 64
+            }
+          }
+        ],
+        "totals": {
+          "unknown_sites": 23,
+          "budget_exhausted": 189,
+          "queries": 129,
+          "unchanged_edges": 95583,
+          "resolved_sites": 106,
+          "dampened_edges": 160,
+          "boosted_edges": 11
+        },
+        "bridge": {
+          "started_servers": 1,
+          "queries": 129,
+          "timeouts_or_disconnects": 1
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 64.7175938099972,
+      "base_commit": "7ca279e33aebb60168d35e6be4ed059f4a68f2c1",
+      "source_record_sha256": "324350eb4d0bb86c35245c6806790b38144c85a3b3699ab558ab4953d7577c49"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "psf__requests-2674",
+      "repo": "psf/requests",
+      "status": "completed",
+      "resolved": false,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-555f4220710cfa07f5a7d9fd",
+        "patch_sha256": "aad0b770caf293478a95ca735e64a1b9dd11aa099f124e2664abfec5658f0e8c",
+        "status": "graded",
+        "report": "grading\\psf__requests-2674\\logs\\run_evaluation\\baseline-555f4220710cfa07f5a7d9fd\\treatment_lsp_graph\\psf__requests-2674\\report.json",
+        "report_sha256": "d235dd68e40ff8c14dc6a926596dbb4d091356d9080df07e423d87f777db7961"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 38189,
+      "total_turns": 3,
+      "total_input_tokens": 64870,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 1281,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 1,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 23685,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.0005202059983276,
+            "stats": {
+              "resolved_sites": 45,
+              "unknown_sites": 12,
+              "budget_exhausted": 4,
+              "queries": 57
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 0.5298699439990742,
+            "stats": {
+              "cache_hits": 45,
+              "resolved_sites": 83,
+              "unknown_sites": 26,
+              "budget_exhausted": 17,
+              "queries": 64
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 0.35312731199883274,
+            "stats": {
+              "cache_hits": 35,
+              "resolved_sites": 80,
+              "unknown_sites": 19,
+              "budget_exhausted": 19,
+              "queries": 64
+            }
+          },
+          {
+            "turn": 2,
+            "elapsed_seconds": 2.0012429019989213,
+            "stats": {
+              "unknown_sites": 1,
+              "budget_exhausted": 67,
+              "queries": 1
+            }
+          }
+        ],
+        "totals": {
+          "resolved_sites": 208,
+          "unknown_sites": 58,
+          "budget_exhausted": 107,
+          "queries": 186,
+          "unchanged_edges": 10247,
+          "boosted_edges": 140,
+          "dampened_edges": 434,
+          "cache_hits": 80
+        },
+        "bridge": {
+          "started_servers": 1,
+          "queries": 186,
+          "timeouts_or_disconnects": 2
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 66.78084934800063,
+      "base_commit": "0be38a0c37c59c4b66ce908731da15b401655113",
+      "source_record_sha256": "0db83f5df023119508e0ef8612bffc724f64e4b95c4a7fec49ef9adbfcca5876"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "matplotlib__matplotlib-23314",
+      "repo": "matplotlib/matplotlib",
+      "status": "completed",
+      "resolved": false,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-2e4926ca99358600142b8b39",
+        "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "status": "empty_prediction",
+        "report": null,
+        "report_sha256": null
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": null,
+      "tokens_to_first_edit": null,
+      "total_turns": 2,
+      "total_input_tokens": 43105,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 141,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 0,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 29844,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.001545035000163,
+            "stats": {
+              "unknown_sites": 1,
+              "budget_exhausted": 3,
+              "queries": 1
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.001451739000913,
+            "stats": {
+              "unknown_sites": 21,
+              "resolved_sites": 7,
+              "budget_exhausted": 35,
+              "queries": 28
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 2.0032910689988057,
+            "stats": {
+              "resolved_sites": 8,
+              "unknown_sites": 1,
+              "budget_exhausted": 203,
+              "queries": 9
+            }
+          }
+        ],
+        "totals": {
+          "unknown_sites": 23,
+          "budget_exhausted": 241,
+          "queries": 38,
+          "unchanged_edges": 409742,
+          "resolved_sites": 15,
+          "dampened_edges": 388,
+          "boosted_edges": 6
+        },
+        "bridge": {
+          "started_servers": 1,
+          "queries": 38,
+          "timeouts_or_disconnects": 3
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 62.433204570999806,
+      "base_commit": "97fc1154992f64cfb2f86321155a7404efeb2d8a",
+      "source_record_sha256": "c4dfbeb1f353284aeb3a24bed0fb15169289b590157389bf061b177ba5ae5abe"
+    },
+    {
+      "schema_version": 1,
+      "kind": "treatment_result",
+      "experiment_id": "bacd0701013355dd2b09",
+      "arm": "treatment_lsp_graph",
+      "instance_id": "pytest-dev__pytest-11143",
+      "repo": "pytest-dev/pytest",
+      "status": "completed",
+      "resolved": true,
+      "grading": {
+        "engine": "swebench",
+        "run_id": "baseline-135fe1da014a09e34f2b22aa",
+        "patch_sha256": "b3b0801acf205b62bb0de0058c4c058ef0ac4d4cf110718f30fd8bc03f19ec03",
+        "status": "graded",
+        "report": "grading\\pytest-dev__pytest-11143\\logs\\run_evaluation\\baseline-135fe1da014a09e34f2b22aa\\treatment_lsp_graph\\pytest-dev__pytest-11143\\report.json",
+        "report_sha256": "c556e4aee594bcfb48d742326dcce8a7e2329e8253a13156f01a9110bd1acaf7"
+      },
+      "billing_mode": "chatgpt_subscription",
+      "turns_to_first_edit": 2,
+      "tokens_to_first_edit": 43242,
+      "total_turns": 2,
+      "total_input_tokens": 42905,
+      "cached_input_tokens": 0,
+      "total_output_tokens": 337,
+      "total_cost_usd": null,
+      "usage_complete": true,
+      "cache_hit_ratio": 0.0,
+      "failed_edit_count": 0,
+      "localization_recall_at_turn_3": 1.0,
+      "peak_l1_tokens": 26388,
+      "peak_l2_tokens": 0,
+      "lsp": {
+        "maps": [
+          {
+            "turn": 0,
+            "elapsed_seconds": 2.0004106529995624,
+            "stats": {
+              "resolved_sites": 25,
+              "unknown_sites": 1,
+              "budget_exhausted": 1,
+              "queries": 26
+            }
+          },
+          {
+            "turn": 0,
+            "elapsed_seconds": 1.9708666949991311,
+            "stats": {
+              "cache_hits": 25,
+              "resolved_sites": 85,
+              "unknown_sites": 4,
+              "budget_exhausted": 52,
+              "queries": 64
+            }
+          },
+          {
+            "turn": 1,
+            "elapsed_seconds": 1.087764514999435,
+            "stats": {
+              "cache_hits": 26,
+              "resolved_sites": 90,
+              "budget_exhausted": 31,
+              "queries": 64
+            }
+          }
+        ],
+        "totals": {
+          "resolved_sites": 200,
+          "unknown_sites": 5,
+          "budget_exhausted": 84,
+          "queries": 154,
+          "unchanged_edges": 23889,
+          "boosted_edges": 53,
+          "dampened_edges": 232,
+          "cache_hits": 51
+        },
+        "bridge": {
+          "started_servers": 1,
+          "queries": 154,
+          "timeouts_or_disconnects": 1
+        },
+        "errors": {},
+        "started_languages": [
+          "python"
+        ],
+        "unavailable_languages": []
+      },
+      "elapsed_seconds": 38.36932083099964,
+      "base_commit": "6995257cf470d2143ad1683824962de4071c0eb7",
+      "source_record_sha256": "57f2def8900f766bc9ff7b91cd7fdee4605e790b586d7e6153e95502db54af68"
+    }
+  ],
+  "comparison": {
+    "control_experiment_id": "81472973655c74441877",
+    "baseline_sha256": "ab19808fbc4500fbc229330e68d66d634d8a407acfe1b443ef11c58aea420700",
+    "kind": "historical_control"
+  },
+  "excluded_setup_usage": {
+    "abandoned_experiment_id": "e26d3eeab5cca181b865",
+    "abandoned_request_count": 1,
+    "abandoned_request_tokens": null,
+    "diagnostic_request_count": 1,
+    "diagnostic_input_tokens": 10252,
+    "diagnostic_output_tokens": 88,
+    "diagnostic_combined_tokens": 10340,
+    "included_in_paired_task_totals": false,
+    "reason": "Completed response omitted output snapshot; text verified by sealed events after decoder fix",
+    "artifact_root": "benchmark/results/lsp-graph-50-v1/diagnostics"
+  }
+}

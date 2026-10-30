@@ -9,6 +9,45 @@ Experiment: `bacd0701013355dd2b09`.
 Artifacts: `benchmark/results/lsp-graph-50-v2/` (ignored by Git).
 Host log: `benchmark/.cache/lsp-run-v2.log`; stderr: `benchmark/.cache/lsp-run-v2.err.log`.
 
+## Completed result
+
+All 50 tasks completed, with 32 resolved (64%) and zero infrastructure errors. The
+versioned record is [experiments/lsp-graph-50.json](experiments/lsp-graph-50.json); the
+local detailed report is `benchmark/results/lsp-graph-50-v2/comparison_report.md`.
+
+| Measure | Control | LSP-only |
+|---|---:|---:|
+| Resolved | 32/50 (64%) | 32/50 (64%) |
+| Input tokens | 2,114,323 | 2,163,982 |
+| Output tokens | 40,873 | 41,188 |
+| Combined tokens | 2,155,196 | 2,205,170 (+2.32%) |
+| Model calls | 108 | 109 |
+| Failed edit/lint turns | 7 | 9 |
+| Turn-3 localization recall, mean | 98% | 100% |
+
+Two control failures became successes and two control successes became failures. There
+are 48 official reports and two explicitly empty predictions; usage is complete for all
+50 tasks. Source-record hashes, report hashes and token sums were checked against the
+local artifacts, and the immutable baseline's hash still matches.
+
+The token increase is concentrated in correction rounds: `sphinx-doc__sphinx-8435`
+required a fourth call after a Flake8 undefined-name error, adding 53,021 input tokens;
+`scikit-learn__scikit-learn-10297` required a third call after a SEARCH/REPLACE mismatch,
+adding 26,288 input tokens. `scikit-learn__scikit-learn-15512` saved a call and 5,456 input
+tokens. Tasks with unchanged call counts used 24,194 fewer input tokens in aggregate.
+The net difference is 49,659 input plus 315 output tokens, or 49,974 combined tokens.
+
+LSP itself makes no inference requests. This milestone changes ranking and selected
+context, which can change model edits and subsequent correction turns. It does not
+implement L1/L2 paging or source compression. The observed correction differences cannot
+be attributed uniquely to LSP rather than model variability in this historical comparison.
+
+Semantic resolutions were observed on 39/50 tasks, with 4,063 resolved-site evaluations,
+4,198 definition RPCs, 1,399 boosted and 9,613 dampened edge evaluations. Five server-start
+failures and bounded timeouts used fallback behavior. Repeated map evaluations are counted;
+these are not unique sites/edges. This run demonstrates no resolution or token-saving
+advantage for the current LSP-only configuration. Paging remains a separate next milestone.
+
 ## Frozen configuration
 
 - Same 50 public tasks, dataset revision/checksum, GPT-6.1 Sol model, medium reasoning,

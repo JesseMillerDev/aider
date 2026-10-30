@@ -2,7 +2,8 @@
 
 The LSP graph is implemented behind `--enable-lsp-graph` and remains off by default.
 The frozen [50-task baseline](baselines/README.md) is unchanged. The LSP-only treatment
-is documented in [LSP_RUN.md](LSP_RUN.md); no completed treatment score is available yet.
+completed with 32/50 resolved (64%), matching control, and 2.32% more tokens; see
+[LSP_RUN.md](LSP_RUN.md#completed-result). No token-saving advantage was demonstrated.
 
 ## Run it
 
