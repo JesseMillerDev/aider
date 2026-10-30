@@ -346,9 +346,9 @@ class Coder:
         lsp_timeout=10.0,
         lsp_bridge=None,
         enable_l2_paging=False,
-        max_l1_tokens=16000,
-        max_l1_files=4,
-        max_l2_tokens=6000,
+        max_l1_tokens=None,
+        max_l1_files=None,
+        max_l2_tokens=None,
         l1_ttl_turns=2,
     ):
         # Fill in a dummy Analytics if needed, but it is never .enable()'d

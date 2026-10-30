@@ -296,7 +296,7 @@ def test_cli_paging_is_opt_in_and_limits_are_positive(tmp_path):
         args.max_l1_files,
         args.max_l2_tokens,
         args.l1_ttl_turns,
-    ) == (16000, 4, 6000, 2)
+    ) == (None, None, None, 2)
     assert (
         parser.parse_args(
             ["--enable-l2-paging", "--no-enable-l2-paging"]
@@ -517,3 +517,59 @@ def test_explicit_drop_also_removes_protected_outside_root_files(tmp_path):
     coder.abs_fnames.add(str(outside))
     pager.forget(coder, outside)
     assert str(outside) not in coder.abs_fnames
+
+
+def test_default_policy_keeps_large_active_context_until_it_is_idle(tmp_path):
+    files = {
+        f"file{index}.py": f'def work{index}():\n    return "' + "word " * 4000 + '"\n'
+        for index in range(6)
+    }
+    pager, coder, paths = setup(tmp_path, files)
+    assert (pager.max_l1_tokens, pager.max_l1_files, pager.max_l2_tokens) == (
+        None,
+        None,
+        None,
+    )
+    turn(pager, coder)
+    turn(pager, coder)
+    assert coder.abs_fnames == set(paths.values())
+    assert not coder.l2_interface_fnames
+    assert pager.stats["l1_tokens"] > 16000
+    assert not coder.io.warnings
+    turn(pager, coder)
+    assert not coder.abs_fnames
+    assert coder.l2_interface_fnames == set(paths.values())
+
+
+def test_default_l2_has_no_implicit_summary_token_cap(tmp_path):
+    source = '"""' + "contract " * 6500 + '"""\ndef work(): return 1\n'
+    pager, coder, paths = setup(tmp_path, {"a.py": source}, l1_ttl_turns=1)
+    turn(pager, coder)
+    turn(pager, coder)
+    assert coder.l2_interface_fnames == {paths["a.py"]}
+    assert pager.stats["l2_tokens"] > 6000
+    assert not coder.io.warnings
+
+
+def test_explicit_cap_does_not_enable_the_other_caps(tmp_path):
+    parser = get_parser([], str(tmp_path))
+    args = parser.parse_args(["--enable-l2-paging", "--max-l1-files", "8"])
+    assert args.max_l1_files == 8
+    assert args.max_l1_tokens is None and args.max_l2_tokens is None
+    pager, coder, paths = setup(
+        tmp_path,
+        {f"{name}.py": f"def {name}(): return 1\n" for name in ("a", "b", "c")},
+        max_l1_files=1,
+    )
+    pager.prepare(coder)
+    assert len(coder.abs_fnames) == 1
+    assert len(coder.l2_interface_fnames) == 2
+
+
+@pytest.mark.parametrize("bad", [0, -1, True, "100"])
+def test_programmatic_optional_caps_reject_invalid_explicit_values(tmp_path, bad):
+    for name in ("max_l1_tokens", "max_l1_files", "max_l2_tokens"):
+        with pytest.raises(ValueError, match="caps"):
+            ContextPager(tmp_path, len, **{name: bad})
+    with pytest.raises(ValueError, match="TTL"):
+        ContextPager(tmp_path, len, l1_ttl_turns=bad)

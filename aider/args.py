@@ -302,13 +302,13 @@ def get_parser(default_config_files, git_root):
         help="Manage whole-file working context and read-only interface summaries (default: False)",
     )
     for flag, default, help_text in (
-        ("--max-l1-tokens", 16000, "Working source-file token budget"),
-        ("--max-l1-files", 4, "Working source-file count budget"),
-        ("--max-l2-tokens", 6000, "Read-only interface token budget"),
+        ("--max-l1-tokens", None, "Optional working source-file token cap"),
+        ("--max-l1-files", None, "Optional working source-file count cap"),
+        ("--max-l2-tokens", None, "Optional read-only interface token cap"),
         ("--l1-ttl-turns", 2, "Idle completed responses before demoting a file"),
     ):
         group.add_argument(flag, type=positive_integer, default=default,
-                           help=f"{help_text} (default: {default})")
+                           help=f"{help_text} (default: {'no cap' if default is None else default})")
 
     ##########
     group = parser.add_argument_group("History Files")

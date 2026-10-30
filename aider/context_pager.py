@@ -1,4 +1,4 @@
-"""Whole-file working context and bounded, read-only interface summaries."""
+"""Idle-file context paging with optional size caps and read-only interfaces."""
 
 import ast
 import copy
@@ -175,14 +175,18 @@ class ContextPager:
         self,
         root,
         token_count,
-        max_l1_tokens=16000,
-        max_l1_files=4,
-        max_l2_tokens=6000,
+        max_l1_tokens=None,
+        max_l1_files=None,
+        max_l2_tokens=None,
         l1_ttl_turns=2,
     ):
-        for value in (max_l1_tokens, max_l1_files, max_l2_tokens, l1_ttl_turns):
-            if type(value) is not int or value <= 0:
-                raise ValueError("Context paging limits must be positive integers")
+        for value in (max_l1_tokens, max_l1_files, max_l2_tokens):
+            if value is not None and (type(value) is not int or value <= 0):
+                raise ValueError(
+                    "Configured context paging caps must be positive integers"
+                )
+        if type(l1_ttl_turns) is not int or l1_ttl_turns <= 0:
+            raise ValueError("Context paging TTL must be a positive integer")
         self.root = Path(root).resolve()
         self.token_count = token_count
         self.max_l1_tokens, self.max_l1_files = max_l1_tokens, max_l1_files
@@ -343,7 +347,7 @@ class ContextPager:
             block = self._block(path, stub)
             # Count the complete assembled block, not an additive estimate per symbol.
             trial = {**blocks, path: block}
-            if (
+            if self.max_l2_tokens is None or (
                 self._count(
                     INTERFACE_PREFIX + "\n".join(trial[key] for key in sorted(trial))
                 )
@@ -352,6 +356,11 @@ class ContextPager:
                 blocks = trial
                 selected.add(path)
         return selected
+
+    def _over_l1_budget(self, coder, tokens):
+        return (
+            self.max_l1_files is not None and len(coder.abs_fnames) > self.max_l1_files
+        ) or (self.max_l1_tokens is not None and tokens > self.max_l1_tokens)
 
     def _demote(self, coder, path):
         previous = set(coder.l2_interface_fnames)
@@ -431,10 +440,7 @@ class ContextPager:
         for path in candidates:
             state = self.states[path]
             idle = self.turn - max(state.last_referenced_turn, state.last_edited_turn)
-            over = (
-                len(coder.abs_fnames) > self.max_l1_files
-                or l1_tokens > self.max_l1_tokens
-            )
+            over = self._over_l1_budget(coder, l1_tokens)
             if over or (expire and idle >= self.l1_ttl_turns):
                 if self._demote(coder, path):
                     l1_tokens -= self._count(self._block(path, self.sources[path]))
@@ -451,7 +457,7 @@ class ContextPager:
         self.stats["l1_tokens"], self.stats["l2_tokens"] = l1, l2
         self.stats["peak_l1_tokens"] = max(self.stats["peak_l1_tokens"], l1)
         self.stats["peak_l2_tokens"] = max(self.stats["peak_l2_tokens"], l2)
-        overflow = len(coder.abs_fnames) > self.max_l1_files or l1 > self.max_l1_tokens
+        overflow = self._over_l1_budget(coder, l1)
         marker = tuple(sorted(coder.abs_fnames)) if overflow else None
         if overflow and marker != self._last_overflow:
             self.stats["budget_overflows"] += 1
