@@ -17,7 +17,16 @@ def compare(output):
     output = Path(output)
     manifest = read_json(output / "run_manifest.json")
     paging = manifest.get("kind") == "paging_only_treatment"
-    demand = paging and manifest.get("paging_policy") == "demand"
+    combined_arm = manifest.get("kind") == "combined_context_treatment"
+    demand = (paging or combined_arm) and manifest.get("paging_policy") == "demand"
+    if combined_arm and (
+        not demand
+        or not all(
+            manifest.get("features", {}).get(key)
+            for key in ("enable_lsp_graph", "enable_l2_paging", "enable_agent_nav")
+        )
+    ):
+        raise ValueError("Combined feature configuration is incomplete")
     if paging and manifest.get("paging_policy") not in (None, "demand"):
         raise ValueError("Unknown paging treatment policy")
     arm = manifest.get("arm", ARM)
@@ -29,6 +38,7 @@ def compare(output):
     control = {row["instance_id"]: row for row in baseline["instances"]}
     pairs, records = [], []
     semantic, bridge, pager_totals = Counter(), Counter(), Counter()
+    navigation_totals = Counter()
     for task in manifest["tasks"]:
         key = task["instance_id"]
         path = output / arm / (key + ".json")
@@ -59,8 +69,8 @@ def compare(output):
         ):
             raise ValueError(f"Missing official grading provenance: {key}")
         pairs.append((control[key], row))
-        if paging:
-            if not row.get("pager", {}).get("enabled") or row.get("lsp"):
+        if paging or combined_arm:
+            if not row.get("pager", {}).get("enabled") or (paging and row.get("lsp")):
                 raise ValueError(f"Paging-only treatment was not active: {key}")
             if demand and row["pager"]["stats"].get("preloads", 0):
                 raise ValueError(f"Demand paging unexpectedly preloaded dependencies: {key}")
@@ -77,9 +87,19 @@ def compare(output):
                     )
                 }
             )
-        else:
+        if not paging:
             semantic.update(row["lsp"]["totals"])
             bridge.update(row["lsp"]["bridge"])
+        if combined_arm:
+            nav = row.get("navigation")
+            if (
+                not nav
+                or not nav.get("enabled")
+                or nav.get("model_requests_with_instructions")
+                != row["pager"]["completed_responses"]
+            ):
+                raise ValueError(f"Combined navigation was not enabled: {key}")
+            navigation_totals.update(nav["action_attempts"])
         records.append(
             {
                 **row,
@@ -129,6 +149,33 @@ def compare(output):
             else {"lsp_totals": dict(semantic), "lsp_bridge": dict(bridge)}
         ),
     }
+    if combined_arm:
+        summary.update(
+            {
+                "pager_totals": dict(pager_totals),
+                "tasks_with_demotions": sum(
+                    row["pager"]["stats"].get("demotions", 0) > 0 for row in records
+                ),
+                "tasks_sent_l2_context": sum(
+                    any(req["l2_files"] for req in row["pager"]["request_contexts"])
+                    for row in records
+                ),
+                "navigation_action_attempts": dict(navigation_totals),
+                "tasks_using_navigation": sum(
+                    bool(row["navigation"]["action_attempts"]) for row in records
+                ),
+                "navigation_responses": sum(
+                    row["navigation"]["responses_with_navigation"] for row in records
+                ),
+                "invalid_navigation_responses": sum(
+                    row["navigation"]["invalid_navigation_responses"] for row in records
+                ),
+                "auxiliary_model_calls": sum(
+                    row["total_turns"] - row["navigation"]["model_requests_with_instructions"]
+                    for row in records
+                ),
+            }
+        )
     paired_report = report(manifest, pairs).replace(
         "# Paired A/B comparison",
         (
@@ -138,7 +185,11 @@ def compare(output):
                 else "# Idle-only paging versus historical control"
             )
             if paging
-            else "# LSP-only treatment versus historical control"
+            else (
+                "# All implemented context features versus historical control"
+                if combined_arm
+                else "# LSP-only treatment versus historical control"
+            )
         ),
         1,
     )
@@ -164,7 +215,16 @@ def compare(output):
             f"L2 interfaces were sent on {summary['tasks_sent_l2_context']}/50 tasks. LSP was disabled; all size caps were unset.",
             "Pager counters include repeated operations; short tasks can finish before the idle TTL expires.",
         ]
-    if demand:
+    if combined_arm:
+        additions.extend(
+            [
+                f"Paging: {pager_totals['demotions']} demotions, {pager_totals['preloads']} dependency preloads, {pager_totals['full_file_reloads']} full-file loads/reloads.",
+                f"L2 context was sent on {summary['tasks_sent_l2_context']}/50 tasks; navigation was used on {summary['tasks_using_navigation']}/50 tasks.",
+                f"Navigation action attempts: {dict(navigation_totals)}; invalid protocol responses: {summary['invalid_navigation_responses']}.",
+                "LSP ranking, explicit navigation and demand paging were enabled together. The full fifty was explicitly requested as an exploratory combined run; its five-task gate checks infrastructure/features rather than token savings or score. The prior failed demand-only efficiency gate remains recorded separately.",
+            ]
+        )
+    if demand and not combined_arm:
         additions.append(
             "Demand paging disabled dependency preloading. Its five-task gate required strictly "
             "fewer measured input+output tokens and no lower resolved-task count than control. "
@@ -217,9 +277,13 @@ def compare(output):
         ROOT
         / "benchmark/experiments"
         / (
-            "pager-demand-50.json"
-            if demand
-            else "pager-idle-50.json" if paging else "lsp-graph-50.json"
+            "combined-all-50.json"
+            if combined_arm
+            else (
+                "pager-demand-50.json"
+                if demand
+                else "pager-idle-50.json" if paging else "lsp-graph-50.json"
+            )
         )
     )
     if target.exists() and read_json(target)["experiment_id"] != manifest["experiment_id"]:

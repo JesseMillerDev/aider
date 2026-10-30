@@ -302,3 +302,52 @@ def test_paging_comparison_records_a_separate_treatment_without_overwriting_lsp(
     report = (output / "comparison_report.md").read_text(encoding="utf-8")
     assert ("Demand paging" if demand else "Idle-only paging") in report
     assert "LSP was disabled" in report
+
+
+def test_combined_comparison_preserves_all_prior_treatment_records(tmp_path, monkeypatch):
+    from benchmark.ab_support import read_json
+    from benchmark.run_combined_benchmark import ARM as combined_arm, FEATURES
+
+    comparison, output = comparison_fixture(tmp_path, monkeypatch)
+    manifest = read_json(output / "run_manifest.json")
+    manifest.update(
+        kind="combined_context_treatment",
+        arm=combined_arm,
+        paging_policy="demand",
+        features=FEATURES,
+    )
+    atomic_json(output / "run_manifest.json", manifest)
+    siblings = {}
+    for name in ("lsp-graph-50.json", "pager-idle-50.json", "pager-demand-50.json"):
+        path = tmp_path / "benchmark/experiments" / name
+        atomic_json(path, {"experiment_id": "previous-" + name, "preserve": True})
+        siblings[path] = path.read_bytes()
+    for task in manifest["tasks"]:
+        path = output / ARM / (task["instance_id"] + ".json")
+        row = read_json(path)
+        row["arm"] = combined_arm
+        row["pager"] = {
+            "enabled": True,
+            "completed_responses": row["total_turns"],
+            "stats": {"demotions": 1, "preloads": 0, "full_file_reloads": 1},
+            "request_contexts": [{"l2_files": ["b.py"]}],
+        }
+        row["navigation"] = {
+            "enabled": True,
+            "model_requests_with_instructions": row["total_turns"],
+            "action_attempts": {"nav_def": 1},
+            "responses_with_navigation": 1,
+            "invalid_navigation_responses": 0,
+        }
+        atomic_json(output / combined_arm / path.name, row)
+        path.unlink()
+    summary = comparison.compare(output)
+    assert summary["tasks_using_navigation"] == 50
+    assert summary["navigation_action_attempts"] == {"nav_def": 50}
+    assert summary["tasks_sent_l2_context"] == 50
+    assert summary["pager_totals"]["preloads"] == 0
+    assert (tmp_path / "benchmark/experiments/combined-all-50.json").exists()
+    assert all(path.read_bytes() == data for path, data in siblings.items())
+    report = (output / "comparison_report.md").read_text(encoding="utf-8")
+    assert "All implemented context features" in report
+    assert "explicitly requested" in report

@@ -14,6 +14,8 @@ from types import SimpleNamespace
 
 def coder_feature_options(features):
     options = {}
+    if features.get("enable_agent_nav"):
+        options["enable_agent_nav"] = True
     if features.get("enable_lsp_graph"):
         options.update(enable_lsp_graph=True, lsp_timeout=features["lsp_timeout"])
     if features.get("enable_l2_paging"):
@@ -25,6 +27,82 @@ def coder_feature_options(features):
             l1_ttl_turns=features.get("l1_ttl_turns", 2),
         )
     return options
+
+
+class NavigationTelemetry:
+    """Observe real navigation attempts without changing their results or prompts."""
+
+    def __init__(self, coder, current_turn):
+        self.navigator = getattr(coder, "agent_navigator", None)
+        self.graph = getattr(getattr(coder, "repo_map", None), "semantic_graph", None)
+        self.events = []
+        self.actions = Counter()
+        self.responses = 0
+        self.invalid_responses = 0
+        self.protocol_requests = 0
+        if self.navigator is None:
+            return
+        execute = self.navigator.execute
+        handle = self.navigator.handle
+
+        def tracked_execute(actions, manual=False):
+            names = [name for name, args in actions]
+            self.actions.update(names)
+            self.events.append({"ordinal": current_turn(), "actions": names, "manual": manual})
+            return execute(actions, manual=manual)
+
+        def tracked_handle(content):
+            result = handle(content)
+            if result is not None:
+                self.responses += 1
+                self.invalid_responses += result.startswith("Navigation rejected:")
+            return result
+
+        self.navigator.execute = tracked_execute
+        self.navigator.handle = tracked_handle
+
+    @staticmethod
+    def contains_instructions(messages):
+        for message in messages:
+            if message.get("role") not in ("system", "developer"):
+                continue
+            content = message.get("content")
+            texts = (
+                [content]
+                if isinstance(content, str)
+                else [block.get("text", "") for block in content or [] if isinstance(block, dict)]
+            )
+            if any(
+                "You can navigate repository files before editing." in text
+                and "```aider-nav" in text
+                for text in texts
+            ):
+                return True
+        return False
+
+    def for_request(self, messages):
+        snapshot = self.snapshot()
+        if snapshot is not None:
+            snapshot["request_contains_instructions"] = self.contains_instructions(messages)
+        return snapshot
+
+    def snapshot(self, messages=None, include_events=False):
+        """Passing messages counts an accepted request, never a rejected budget attempt."""
+        if self.navigator is None:
+            return None
+        if messages is not None:
+            self.protocol_requests += self.contains_instructions(messages)
+        return {
+            "enabled": True,
+            "model_requests_with_instructions": self.protocol_requests,
+            "responses_with_navigation": self.responses,
+            "invalid_navigation_responses": self.invalid_responses,
+            "action_attempts": dict(self.actions),
+            "bridge_shared_with_ranking": (
+                self.graph is not None and self.navigator.bridge is self.graph.bridge
+            ),
+            **({"events": list(self.events)} if include_events else {}),
+        }
 
 
 def run(job_path):
@@ -63,11 +141,14 @@ def run(job_path):
                 )
             },
             "completed_responses": pager.turn,
-            "stats": {**dict(pager.stats), "full_file_reloads": paging_reloads},
+            "stats": {
+                **dict(pager.stats),
+                "full_file_reloads": paging_reloads + pager.stats.get("full_file_reloads", 0),
+                "file_mention_reloads": paging_reloads,
+                "navigation_file_loads": pager.stats.get("full_file_reloads", 0),
+            },
             "l1_files": sorted(coder.get_rel_fname(path) for path in coder.abs_fnames),
-            "l2_files": sorted(
-                coder.get_rel_fname(path) for path in coder.l2_interface_fnames
-            ),
+            "l2_files": sorted(coder.get_rel_fname(path) for path in coder.l2_interface_fnames),
             **(
                 {"events": paging_events, "request_contexts": paging_requests}
                 if include_events
@@ -137,8 +218,7 @@ def run(job_path):
         def context():
             l1 = sorted(coder.get_rel_fname(path) for path in coder.abs_fnames)
             l2 = sorted(
-                coder.get_rel_fname(path)
-                for path in getattr(coder, "l2_interface_fnames", [])
+                coder.get_rel_fname(path) for path in getattr(coder, "l2_interface_fnames", [])
             )
             tokens = sum(
                 model.token_count(Path(path).read_text(errors="replace"))
@@ -164,6 +244,17 @@ def run(job_path):
                 state["turn"] += 1
                 state["contexts"][state["turn"]] = context()
                 paging_snapshot = pager_telemetry()
+                if (
+                    paging_snapshot is not None
+                    and navigation.navigator is not None
+                    and not navigation.contains_instructions(messages)
+                ):
+                    paging_snapshot = {
+                        **paging_snapshot,
+                        "l1_files": [],
+                        "l2_files": [],
+                        "auxiliary_request": True,
+                    }
                 emit(
                     "model_request",
                     ordinal=state["turn"],
@@ -174,6 +265,7 @@ def run(job_path):
                     context=state["contexts"][state["turn"]],
                     lsp=lsp_telemetry(),
                     pager=paging_snapshot,
+                    navigation=navigation.for_request(messages),
                     elapsed_seconds=time.monotonic() - started,
                 )
                 line = protocol_in.readline()
@@ -184,20 +276,15 @@ def run(job_path):
                     raise ChatGPTError("Invalid benchmark host response")
                 if reply.get("error"):
                     state["stop_reason"] = reply["error"]
-                    raise ChatGPTError(
-                        reply["error"]["message"], code=reply["error"].get("code")
-                    )
+                    raise ChatGPTError(reply["error"]["message"], code=reply["error"].get("code"))
+                navigation.snapshot(messages)
                 usage = SimpleNamespace(**reply["usage"])
                 if paging_snapshot is not None:
-                    paging_requests.append(
-                        {"ordinal": state["turn"], **paging_snapshot}
-                    )
+                    paging_requests.append({"ordinal": state["turn"], **paging_snapshot})
                 result = SimpleNamespace(
                     choices=[
                         SimpleNamespace(
-                            message=SimpleNamespace(
-                                content=reply["text"], tool_calls=None
-                            ),
+                            message=SimpleNamespace(content=reply["text"], tool_calls=None),
                             finish_reason="stop",
                         )
                     ],
@@ -236,6 +323,7 @@ def run(job_path):
             num_cache_warming_pings=0,
             **feature_options,
         )
+        navigation = NavigationTelemetry(coder, lambda: state["turn"])
         if getattr(coder, "context_pager", None) is not None:
             original_step = coder.context_pager.step
             original_add_rel_fname = coder.add_rel_fname
@@ -327,9 +415,7 @@ def run(job_path):
         coder.get_edits, coder.lint_edited = get_edits, lint
         coder.apply_updates = apply_updates
         if job.get("preflight"):
-            coder.cur_messages = [
-                {"role": "user", "content": job["task"]["problem_statement"]}
-            ]
+            coder.cur_messages = [{"role": "user", "content": job["task"]["problem_statement"]}]
             coder.get_repo_map(force_refresh=True)
         else:
             coder.run(
@@ -343,9 +429,7 @@ def run(job_path):
             stdout=log,
             stderr=log,
         )
-        patch = subprocess.check_output(
-            ["git", "diff", "--no-ext-diff", "--binary", "HEAD"]
-        )
+        patch = subprocess.check_output(["git", "diff", "--no-ext-diff", "--binary", "HEAD"])
         (artifacts / "prediction.patch").write_bytes(patch)
         emit(
             "done",
@@ -358,6 +442,7 @@ def run(job_path):
             patch_sha256=hashlib.sha256(patch).hexdigest(),
             lsp=lsp_telemetry(),
             pager=pager_telemetry(include_events=True),
+            navigation=navigation.snapshot(include_events=True),
             elapsed_seconds=time.monotonic() - started,
         )
         if coder.repo_map:
@@ -368,8 +453,6 @@ if __name__ == "__main__":
     try:
         run(sys.argv[1])
     except Exception as exc:
-        sys.__stdout__.write(
-            json.dumps({"type": "worker_error", "message": str(exc)}) + "\n"
-        )
+        sys.__stdout__.write(json.dumps({"type": "worker_error", "message": str(exc)}) + "\n")
         sys.__stdout__.flush()
         raise

@@ -24,6 +24,24 @@ def test_worker_passes_idle_only_defaults_and_preserves_stock_call_shape():
     }
 
 
+def test_worker_enables_navigation_with_paging_and_semantic_ranking():
+    options = coder_feature_options(
+        {
+            "enable_agent_nav": True,
+            "enable_l2_paging": True,
+            "enable_lsp_graph": True,
+            "lsp_timeout": 10,
+        }
+    )
+    assert options == {
+        "enable_agent_nav": True,
+        "enable_l2_paging": True,
+        "enable_lsp_graph": True,
+        "lsp_timeout": 10,
+        **SETTINGS,
+    }
+
+
 def test_offline_fixture_demotes_after_idle_without_mutating_source():
     proof = preflight()
     assert proof["status"] == "passed"

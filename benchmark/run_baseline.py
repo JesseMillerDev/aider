@@ -388,6 +388,7 @@ def result_record(
         "peak_l2_tokens": telemetry["peak_l2_tokens"],
         **({"lsp": telemetry["lsp"]} if telemetry.get("lsp") is not None else {}),
         **({"pager": telemetry["pager"]} if telemetry.get("pager") is not None else {}),
+        **({"navigation": telemetry["navigation"]} if telemetry.get("navigation") is not None else {}),
         **(
             {"elapsed_seconds": telemetry["elapsed_seconds"]}
             if "elapsed_seconds" in telemetry
