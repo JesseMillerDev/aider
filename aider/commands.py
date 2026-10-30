@@ -279,6 +279,10 @@ class Commands:
             if not attr.startswith("cmd_"):
                 continue
             cmd = attr[4:]
+            if cmd in {"nav_def", "nav_refs", "page_l1", "demote_l2"} and not getattr(
+                self.coder, "agent_navigator", None
+            ):
+                continue
             cmd = cmd.replace("_", "-")
             commands.append("/" + cmd)
 
@@ -303,6 +307,10 @@ class Commands:
             return
 
         first_word = words[0]
+        if getattr(self.coder, "agent_navigator", None) and first_word in {
+            "/nav_def", "/nav_refs", "/page_l1", "/demote_l2"
+        }:
+            first_word = first_word.replace("_", "-")
         rest_inp = inp[len(words[0]) :].strip()
 
         all_commands = self.get_commands()
@@ -333,6 +341,37 @@ class Commands:
 
     # any method called cmd_xxx becomes a command automatically.
     # each one must take an args param.
+
+    def _navigation_command(self, name, args):
+        from aider.agent_nav import NavigationError, parse_actions
+
+        navigator = getattr(self.coder, "agent_navigator", None)
+        if navigator is None:
+            self.io.tool_error("Enable --enable-agent-nav to use navigation commands.")
+            return
+        try:
+            actions = parse_actions(f"```aider-nav\n/{name} {args or ''}\n```")
+            if len(actions) != 1:
+                raise NavigationError("Use one action per user command.")
+            self.io.tool_output(navigator.execute(actions, manual=True))
+        except NavigationError as err:
+            self.io.tool_error(str(err))
+
+    def cmd_nav_def(self, args):
+        "Look up a definition and load its complete repository file"
+        self._navigation_command("nav_def", args)
+
+    def cmd_nav_refs(self, args):
+        "List semantic or syntax-based repository references"
+        self._navigation_command("nav_refs", args)
+
+    def cmd_page_l1(self, args):
+        "Load a complete file into working context; optional lines are hints"
+        self._navigation_command("page_l1", args)
+
+    def cmd_demote_l2(self, args):
+        "Replace an eligible working file with its read-only interface"
+        self._navigation_command("demote_l2", args)
 
     def cmd_commit(self, args=None):
         "Commit edits to the repo made outside the chat (commit message optional)"

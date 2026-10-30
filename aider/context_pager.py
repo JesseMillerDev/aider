@@ -179,6 +179,7 @@ class ContextPager:
         max_l1_files=None,
         max_l2_tokens=None,
         l1_ttl_turns=2,
+        automatic=True,
     ):
         for value in (max_l1_tokens, max_l1_files, max_l2_tokens):
             if value is not None and (type(value) is not int or value <= 0):
@@ -192,6 +193,7 @@ class ContextPager:
         self.max_l1_tokens, self.max_l1_files = max_l1_tokens, max_l1_files
         self.max_l2_tokens, self.l1_ttl_turns = max_l2_tokens, l1_ttl_turns
         self.turn = 0
+        self.automatic = automatic
         self.states, self.stubs, self.sources = {}, {}, {}
         self.forgotten, self.current_refs = set(), set()
         self.l2_paths = set()
@@ -448,7 +450,8 @@ class ContextPager:
             coder.l2_interface_fnames,
             key=lambda p: (-self.states.get(p, FileState()).last_referenced_turn, p),
         )
-        selected = self._select_l2(coder, history + sorted(self._dependencies(coder)))
+        dependencies = sorted(self._dependencies(coder)) if self.automatic else []
+        selected = self._select_l2(coder, history + dependencies)
         self.stats["preloads"] += len(selected - coder.l2_interface_fnames)
         coder.l2_interface_fnames = selected
         self.l2_paths = set(selected)
@@ -488,13 +491,52 @@ class ContextPager:
             if path not in self.states:
                 continue
             state = self.states[path]
-            state.pending = bool(getattr(coder, "reflected_message", None))
+            if not getattr(coder, "_navigation_reflection", False):
+                state.pending = bool(getattr(coder, "reflected_message", None))
             if coder.test_outcome is not None:
                 state.test = "clean" if coder.test_outcome else "failed"
         if coder.test_outcome is not None:
             self.record_test(coder, coder.test_outcome)
-        self._refresh(coder, expire=True)
+        self._refresh(coder, expire=self.automatic)
         self.current_refs = set()
+
+    def promote_file(self, coder, path):
+        """Load a complete repository file, recording activity for the idle policy."""
+        path = self._path(path)
+        if not path or self._read(coder, path) is None:
+            raise ValueError("The file cannot be loaded into this repository context.")
+        was_l2 = path in coder.l2_interface_fnames
+        was_l1 = path in coder.abs_fnames
+        coder.abs_fnames.add(path)
+        coder.l2_interface_fnames.discard(path)
+        self.forgotten.discard(path)
+        self._observe(coder, self.turn + 1)
+        self.states[path].last_referenced_turn = self.turn + 1
+        self.current_refs.add(path)
+        self.l2_paths = set(coder.l2_interface_fnames)
+        if was_l2:
+            self.stats["promotions"] += 1
+        if not was_l1:
+            self.stats["full_file_reloads"] += 1
+
+    def demote_file(self, coder, path):
+        """Manually demote an eligible file, bypassing only its idle age."""
+        path = self._path(path)
+        if not path or path not in coder.abs_fnames:
+            raise ValueError("The file is not in L1.")
+        self._observe(coder, self.turn + 1)
+        state = self.states.get(path)
+        if state is None or (
+            self.test_status == "failed" or state.pending or state.lint == "failed"
+            or state.test == "failed" or (state.edited and state.lint != "clean")
+        ):
+            raise ValueError(
+                "The file has pending, failed, or unchecked edits; it must stay in L1."
+            )
+        if not self._demote(coder, path):
+            raise ValueError(
+                "A complete interface is unavailable or exceeds the configured L2 cap."
+            )
 
     def record_lint(self, coder, path, errors, status=None):
         path = self._path(path)

@@ -301,6 +301,10 @@ def get_parser(default_config_files, git_root):
         "--enable-l2-paging", action=argparse.BooleanOptionalAction, default=False,
         help="Manage whole-file working context and read-only interface summaries (default: False)",
     )
+    group.add_argument(
+        "--enable-agent-nav", action=argparse.BooleanOptionalAction, default=False,
+        help="Allow up to three explicit file navigation actions per response (default: False)",
+    )
     for flag, default, help_text in (
         ("--max-l1-tokens", None, "Optional working source-file token cap"),
         ("--max-l1-files", None, "Optional working source-file count cap"),

@@ -5,6 +5,10 @@ in L1, maintains read-only interfaces in L2, and excludes those files from the
 cold repository map. It does not introduce source windows, autonomous navigation actions,
 trace weighting or LSP diagnostic reflection.
 
+Explicit navigation is available separately through `--enable-agent-nav`; see
+[the navigation behavior and tests](AGENT_NAVIGATION.md). Navigation can use
+manual L1/L2 transitions without enabling automatic preloading or idle paging.
+
 ```powershell
 .venv/Scripts/python.exe -m aider --model chatgpt/gpt-6.1-sol --enable-l2-paging
 ```

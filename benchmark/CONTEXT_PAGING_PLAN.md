@@ -15,7 +15,11 @@ Its [fifty-task result](PAGER_RUN.md#completed-result) resolved 31/50 (62%) vers
 the control's 32/50 (64%). Accepted responses used 3,330,103 tokens (+54.52%);
 one failed attempt has unknown additional usage. The only TTL demotion happened
 after a task's final response, so no subsequent input benefited from it.
-Navigation, trace weighting and edit-diagnostic reflection remain upcoming work.
+Explicit autonomous whole-file navigation is implemented behind `--enable-agent-nav`;
+see [behavior and verification](AGENT_NAVIGATION.md). It supports definition/reference
+lookup and deliberate L1/L2 transitions independently of automatic paging. Source
+windows remain deferred to preserve whole-file edits. Trace weighting and
+edit-diagnostic reflection remain upcoming work.
 
 ## Assessment of prompt.md
 

@@ -350,6 +350,7 @@ class Coder:
         max_l1_files=None,
         max_l2_tokens=None,
         l1_ttl_turns=2,
+        enable_agent_nav=False,
     ):
         # Fill in a dummy Analytics if needed, but it is never .enable()'d
         self.analytics = analytics if analytics is not None else Analytics()
@@ -403,6 +404,7 @@ class Coder:
         self.abs_fnames = set()
         self.abs_read_only_fnames = set()
         self.context_pager = None
+        self.agent_navigator = None
         self.l2_interface_fnames = set()
         self.add_gitignore_files = add_gitignore_files
 
@@ -546,14 +548,22 @@ class Coder:
         self.auto_test = auto_test
         self.test_cmd = test_cmd
 
-        if enable_l2_paging:
+        if enable_l2_paging or enable_agent_nav:
             from aider.context_pager import ContextPager
 
             self.context_pager = ContextPager(
                 self.root, self.main_model.token_count, max_l1_tokens=max_l1_tokens,
                 max_l1_files=max_l1_files, max_l2_tokens=max_l2_tokens,
                 l1_ttl_turns=l1_ttl_turns,
+                automatic=enable_l2_paging,
             )
+
+        if enable_agent_nav:
+            if self.functions:
+                raise ValueError("Agent navigation requires a text-based edit format.")
+            from aider.agent_nav import AgentNavigator
+
+            self.agent_navigator = AgentNavigator(self, bridge=lsp_bridge, timeout=lsp_timeout)
 
         # validate the functions jsonschema
         if self.functions:
@@ -1264,6 +1274,10 @@ class Coder:
             self.context_pager.prepare(self)
         self.choose_fence()
         main_sys = self.fmt_system_prompt(self.gpt_prompts.main_system)
+        if self.agent_navigator is not None:
+            from aider.agent_nav import INSTRUCTIONS
+
+            main_sys += "\n" + INSTRUCTIONS
         if self.main_model.system_prompt_prefix:
             main_sys = self.main_model.system_prompt_prefix + "\n" + main_sys
 
@@ -1466,6 +1480,7 @@ class Coder:
     def send_message(self, inp):
         pager = self.context_pager
         self._pager_response_completed = False
+        self._navigation_reflection = False
         if pager is not None:
             pager.prepare(self, inp)
         try:
@@ -1511,10 +1526,12 @@ class Coder:
         self.usage_report = None
         exhausted = False
         interrupted = False
+        response_completed = False
         try:
             while True:
                 try:
                     yield from self.send(messages, functions=self.functions)
+                    response_completed = True
                     break
                 except ChatGPTError as err:
                     # A complete SSE response is required before accepting subscription edits.
@@ -1598,7 +1615,7 @@ class Coder:
         self.show_usage_report()
 
         self.add_assistant_reply_to_cur_messages()
-        self._pager_response_completed = not exhausted and not interrupted
+        self._pager_response_completed = response_completed and not exhausted and not interrupted
 
         if exhausted:
             if self.cur_messages and self.cur_messages[-1]["role"] == "user":
@@ -1613,6 +1630,9 @@ class Coder:
             self.num_exhausted_context_windows += 1
             return
 
+        if self.agent_navigator is not None and not response_completed:
+            return
+
         if self.partial_response_function_call:
             args = self.parse_partial_args()
             if args:
@@ -1625,6 +1645,14 @@ class Coder:
             content = ""
 
         if not interrupted:
+            if self.agent_navigator is not None:
+                feedback = self.agent_navigator.handle(content)
+                if feedback is not None:
+                    self.reflected_message = feedback
+                    self._navigation_reflection = True
+                    self.io.tool_output(feedback)
+                    return
+
             add_rel_files_message = self.check_for_file_mentions(content)
             if add_rel_files_message:
                 if self.reflected_message:
@@ -1767,6 +1795,12 @@ class Coder:
     def __del__(self):
         """Cleanup when the Coder object is destroyed."""
         self.ok_to_warm_cache = False
+        navigator = getattr(self, "agent_navigator", None)
+        if navigator is not None:
+            try:
+                navigator.close()
+            except Exception:
+                pass
         repo_map = getattr(self, "repo_map", None)
         if repo_map is not None:
             try:
