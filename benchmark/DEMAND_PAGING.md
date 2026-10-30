@@ -86,7 +86,33 @@ The frozen control, LSP result and old paging result remain separate. Because
 these are reused tasks and a historical control, passing five tasks is a cost
 screen, not independent evidence of generalization or guaranteed full-run savings.
 
-## Recorded verification
+## Five-task smoke result
+
+The [live five-task smoke](experiments/pager-demand-smoke-5.json), experiment
+`400d3df9df553936552a`, resolved **4/5**, matching the same control tasks. It used
+**349,669 input + 4,427 output = 354,096 tokens**, versus control's **353,800**:
+**296 more tokens (+0.084%)**. Usage is complete for all five tasks, all have
+official grading reports, and there are zero infrastructure errors. The strict
+efficiency gate is **blocked**; the remaining 45 tasks were not launched.
+
+Both arms made 11 completed calls. There were zero dependency preloads and no
+model requests containing L2 summaries. The only demotion occurred after the
+final response, so no later request benefited. Removing the bulk preloader
+removed its added context, but this sample did not demonstrate token savings.
+This is a five-task historical comparison, not a full-run score or holdout.
+
+The initial checker incorrectly assumed baseline result rows were in execution
+order; those rows are sorted by task ID. The corrected checker validates the
+ordered task list against the frozen selection hash and joins control outcomes
+by ID. A gate-only recheck preserved the original manifest, transcripts, patches
+and reports, made no inference requests, and saved `gate_recheck.json` alongside
+the raw run. That audit records both checker fingerprints. The saved manifest's
+original host-code fingerprints were not rewritten. A changed treatment should
+use a new output directory rather than modifying this frozen run.
+The checker/comparison regression group passed 37 tests, including reordered
+baseline rows, rejection of changed frozen task order, and blocked-run behavior.
+
+## Recorded offline verification
 
 The [offline verification record](experiments/demand-paging-preflight.json) pins
 source revision `25509b48719d81585aefeffa7123239e8e5c9a5e` and its Docker image.

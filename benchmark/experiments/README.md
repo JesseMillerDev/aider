@@ -5,7 +5,9 @@ LSP disabled and no size caps. It resolved 31/50 tasks and did not save tokens.
 
 The [demand-paging correction](../DEMAND_PAGING.md) removes bulk preloading and
 adds a measured five-task efficiency gate. Its offline checks are separate from
-these task outcomes; no demand-paging model experiment has been run yet.
+these task outcomes. The [demand-paging five-task smoke](pager-demand-smoke-5.json)
+matched control at 4/5 resolved but used 354,096 versus 353,800 tokens (+0.084%).
+Its strict savings gate remained blocked, so the remaining 45 tasks did not run.
 The [offline verification](demand-paging-preflight.json) records the tested source,
 Docker image, whole-prompt estimates and regression checks with zero inference.
 

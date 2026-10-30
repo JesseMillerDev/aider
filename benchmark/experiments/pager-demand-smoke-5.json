@@ -1,0 +1,418 @@
+{
+  "schema_version": 1,
+  "record_type": "smoke_treatment",
+  "recorded_at": "2026-10-30T22:08:49.580766+00:00",
+  "experiment_id": "400d3df9df553936552a",
+  "model": "chatgpt/gpt-6.1-sol",
+  "billing_mode": "chatgpt_subscription",
+  "configuration": {
+    "schema_version": 1,
+    "kind": "paging_only_treatment",
+    "arm": "treatment_pager_demand",
+    "treatment_label": "demand paging treatment",
+    "paging_policy": "demand",
+    "model": "chatgpt/gpt-6.1-sol",
+    "control_experiment_id": "81472973655c74441877",
+    "baseline_sha256": "ab19808fbc4500fbc229330e68d66d634d8a407acfe1b443ef11c58aea420700",
+    "control_revision": "8400741ce7a9d26aecdbe97da423de5f3e80def1",
+    "treatment_revision": "25509b48719d81585aefeffa7123239e8e5c9a5e",
+    "source_archive_sha256": "629e61be67af3f16150cc9af897fb7a7ccd7f0a4f448350f56bf2c69d21c21a7",
+    "dockerfile_sha256": "4a1df625573e17144900275a2c089434eb0c6cd746346dfff4cabbe1a5fe7cec",
+    "preflight_sha256": "00c4a334ba6de88b6c4eebc791609f69606a252f1d2e5c2857485e1299825022",
+    "base_image_id": "sha256:943049c6bb55c885d8d9d59252b0c7d57fb0ea107c8a0afb02a1ceaeac369daa",
+    "tasks_sha256": "cb366de5c8f2dfd14dc1aef20043511304be9e1f40b808bc125b1962a547e52a",
+    "dataset_sha256": "7a21f37b8bc179c7db5beeb14e88ac538ba283455c776e6b2535bbfb6e3551b4",
+    "reasoning_effort": "medium",
+    "max_turns": 25,
+    "temperature": null,
+    "agent_image": "better-aider-pager-demand:25509b48719d",
+    "agent_image_id": "sha256:b88380cb51252b75d3759cee3ea17f0ba02dc6c69d6ef8662899c1073220a647",
+    "grader_image": "better-aider-swebench-grader:4.1.0",
+    "grader_image_id": "sha256:5695af350998c795fa05573456f7a4e00cbe13e65e98e4f77b570d0ed5835d77",
+    "worker_sha256": "d855a756cce40aa08f523a1543d8eca923f2705c40c42d3d32f9a72e5f7677bb",
+    "settings": {
+      "map_tokens": 1024,
+      "auto_lint": true,
+      "auto_test": false,
+      "auto_commits": false,
+      "suggest_shell_commands": false
+    },
+    "features": {
+      "enable_l2_paging": true,
+      "enable_lsp_graph": false,
+      "enable_agent_nav": false,
+      "max_l1_tokens": null,
+      "max_l1_files": null,
+      "max_l2_tokens": null,
+      "l1_ttl_turns": 2
+    },
+    "smoke_instance_ids": [
+      "matplotlib__matplotlib-25433",
+      "pytest-dev__pytest-7220",
+      "scikit-learn__scikit-learn-12471",
+      "django__django-12497",
+      "astropy__astropy-7746"
+    ],
+    "host_files_sha256": {
+      "benchmark/run_baseline.py": "d7b38257639dc5b0ad3f8b07e0b5c75dd626d5026aa64548da338956cf491a04",
+      "benchmark/run_pipeline.py": "0c3185f196e3ca7d08dd63035036b1e025cb35f8e06ae0351fe254aac4e7a084",
+      "benchmark/run_lsp_benchmark.py": "67f744b1a1a5e0dbeb114e3283770645bf12afa74d04fcef9b82bc01bde95fe3",
+      "benchmark/run_pager_benchmark.py": "c098a914636aaa651e64a3aee52853a38cc8ed78b9b260cbae45fd1366beb5b2",
+      "benchmark/compare_lsp.py": "6c1779098bd8161b8687dfb3a4ccd74de9c509d5cf965ff253c5cc0a09ebf423",
+      "benchmark/pager_preflight.py": "00c4a334ba6de88b6c4eebc791609f69606a252f1d2e5c2857485e1299825022",
+      "benchmark/build_pager_agent.py": "48c1f82b0022862d39dce49104d79a0bf9b71d576c35359b58e657af195c3bf1",
+      "aider/chatgpt_transport.py": "82003b15bf70a7c82657a2eb58583e5fd72096f134dac6560bb97c339f2f2231"
+    },
+    "experiment_id": "400d3df9df553936552a"
+  },
+  "summary": {
+    "planned_tasks": 50,
+    "evaluated_tasks": 5,
+    "resolved": 4,
+    "control_resolved": 4,
+    "official_test_reports": 5,
+    "infrastructure_errors": 0,
+    "usage_complete_tasks": 5,
+    "input_tokens": 349669,
+    "output_tokens": 4427,
+    "combined_tokens": 354096,
+    "control_input_tokens": 349281,
+    "control_output_tokens": 4519,
+    "control_combined_tokens": 353800,
+    "combined_token_change": 296,
+    "combined_token_change_percent": 0.08366308648954934,
+    "completed_model_calls": 11,
+    "control_model_calls": 11,
+    "requests_with_l2": 0,
+    "dependency_preloads": 0,
+    "demotions": 1,
+    "later_requests_after_demotion": 0,
+    "efficiency_gate": "blocked",
+    "full_fifty_task_run_started": false
+  },
+  "gate": {
+    "status": "blocked",
+    "experiment_id": "400d3df9df553936552a",
+    "checked_at": "2026-10-30T22:08:49.537719+00:00",
+    "totals": {
+      "demotions": 1,
+      "preloads": 0,
+      "promotions": 0,
+      "full_file_reloads": 0,
+      "budget_overflows": 0,
+      "unhelpful_demotions": 0
+    },
+    "requests_with_l2": 0,
+    "tasks": [
+      {
+        "instance_id": "matplotlib__matplotlib-25433",
+        "resolved": true,
+        "pager_stats": {
+          "l1_tokens": 44812,
+          "l2_tokens": 0,
+          "peak_l1_tokens": 44812,
+          "peak_l2_tokens": 0,
+          "full_file_reloads": 0
+        },
+        "model_calls": 2,
+        "treatment_tokens": 59389,
+        "control_tokens": 59307,
+        "control_resolved": true
+      },
+      {
+        "instance_id": "pytest-dev__pytest-7220",
+        "resolved": true,
+        "pager_stats": {
+          "l1_tokens": 5250,
+          "l2_tokens": 0,
+          "peak_l1_tokens": 5250,
+          "peak_l2_tokens": 0,
+          "full_file_reloads": 0
+        },
+        "model_calls": 2,
+        "treatment_tokens": 21378,
+        "control_tokens": 21218,
+        "control_resolved": true
+      },
+      {
+        "instance_id": "scikit-learn__scikit-learn-12471",
+        "resolved": true,
+        "pager_stats": {
+          "l1_tokens": 14391,
+          "l2_tokens": 0,
+          "peak_l1_tokens": 14391,
+          "peak_l2_tokens": 0,
+          "full_file_reloads": 0
+        },
+        "model_calls": 2,
+        "treatment_tokens": 29132,
+        "control_tokens": 29162,
+        "control_resolved": true
+      },
+      {
+        "instance_id": "django__django-12497",
+        "resolved": true,
+        "pager_stats": {
+          "l1_tokens": 26492,
+          "l2_tokens": 0,
+          "peak_l1_tokens": 26492,
+          "peak_l2_tokens": 0,
+          "full_file_reloads": 0
+        },
+        "model_calls": 2,
+        "treatment_tokens": 41484,
+        "control_tokens": 41723,
+        "control_resolved": true
+      },
+      {
+        "instance_id": "astropy__astropy-7746",
+        "resolved": false,
+        "pager_stats": {
+          "l1_tokens": 40197,
+          "l2_tokens": 2139,
+          "peak_l1_tokens": 76336,
+          "peak_l2_tokens": 2139,
+          "demotions": 1,
+          "full_file_reloads": 0
+        },
+        "model_calls": 3,
+        "treatment_tokens": 202713,
+        "control_tokens": 202390,
+        "control_resolved": false
+      }
+    ],
+    "measurement": {
+      "control_tokens": 353800,
+      "treatment_tokens": 354096,
+      "saved_tokens": -296,
+      "control_resolved": 4,
+      "treatment_resolved": 4
+    },
+    "reasons": [
+      "Smoke token use must be lower than the matched control tasks"
+    ],
+    "criterion": "Five frozen graded tasks with complete measured usage; strictly fewer input+output tokens; no lower resolution count; no dependency preloads; LSP disabled. L2 exposure is optional."
+  },
+  "gate_recheck": {
+    "recorded_at": "2026-10-30T22:08:49.580766+00:00",
+    "experiment_id": "400d3df9df553936552a",
+    "checker_revision": "1a5132e2777d681ae878659436fcaac5611f23e0",
+    "original_run_status": {
+      "status": "blocked",
+      "experiment_id": "400d3df9df553936552a",
+      "updated_at": "2026-10-30T22:02:19.459715+00:00",
+      "error": "Smoke must use the original first five frozen tasks"
+    },
+    "original_checker_sha256": "c098a914636aaa651e64a3aee52853a38cc8ed78b9b260cbae45fd1366beb5b2",
+    "corrected_checker_sha256": "0662c7c6a1c6e4b088f2b8c73fdb44603af28881aa399ba3a4b7385d6a69f218",
+    "reason": "Baseline result rows are sorted by ID; the immutable selection manifest supplies execution order. Compare control outcomes by ID.",
+    "new_inference_requests": 0,
+    "inputs_unchanged": true,
+    "gate_status": "blocked",
+    "gate_error": "Smoke token use must be lower than the matched control tasks"
+  },
+  "instances": [
+    {
+      "instance_id": "matplotlib__matplotlib-25433",
+      "base_commit": "7eafdd8af3c523c1c77b027d378fb337dd489f18",
+      "resolved": true,
+      "control_resolved": true,
+      "input_tokens": 58444,
+      "output_tokens": 945,
+      "control_input_tokens": 58239,
+      "control_output_tokens": 1068,
+      "completed_model_calls": 2,
+      "control_model_calls": 2,
+      "usage_complete": true,
+      "pager_stats": {
+        "l1_tokens": 44812,
+        "l2_tokens": 0,
+        "peak_l1_tokens": 44812,
+        "peak_l2_tokens": 0,
+        "full_file_reloads": 0
+      },
+      "requests_with_l2": 0,
+      "source_record_sha256": "00874209bc6b7c18fed5a498394a50e501154d707d455e5ff9c093b97d1e70ff",
+      "patch_sha256": "00d0d2e7184f61572395978eb3ae216e053b979d3e90b8c5fa42a821bc591e60",
+      "report_sha256": "138cbc2cca97baef8e9a232eee372ed1b9b8f27996438f6bf404e9d473826428",
+      "calls": [
+        {
+          "ordinal": 1,
+          "source_sha256": "1e4bf12a4104d1778d4fd66386d3bb850b2ff9bd0372ce2cf1932209b8691c9c",
+          "input_tokens": 10374,
+          "output_tokens": 173
+        },
+        {
+          "ordinal": 2,
+          "source_sha256": "db40a7bb0d9a863b4b11d53c34495c6e97915f52cee856031be2b3e1daca91de",
+          "input_tokens": 48070,
+          "output_tokens": 772
+        }
+      ]
+    },
+    {
+      "instance_id": "pytest-dev__pytest-7220",
+      "base_commit": "56bf819c2f4eaf8b36bd8c42c06bb59d5a3bfc0f",
+      "resolved": true,
+      "control_resolved": true,
+      "input_tokens": 20581,
+      "output_tokens": 797,
+      "control_input_tokens": 20525,
+      "control_output_tokens": 693,
+      "completed_model_calls": 2,
+      "control_model_calls": 2,
+      "usage_complete": true,
+      "pager_stats": {
+        "l1_tokens": 5250,
+        "l2_tokens": 0,
+        "peak_l1_tokens": 5250,
+        "peak_l2_tokens": 0,
+        "full_file_reloads": 0
+      },
+      "requests_with_l2": 0,
+      "source_record_sha256": "6f2e995537a56ced8927a94c957530e002e10938617a1eda7b2e2025684613ae",
+      "patch_sha256": "e2eb7b1866d73f71e6e8d607a33776c2498a83473f2471b9be9460f74be7fef7",
+      "report_sha256": "3b0f5703c5fe495f3e507f693276166008abe694a757d42142168120b26531e3",
+      "calls": [
+        {
+          "ordinal": 1,
+          "source_sha256": "9be4e3d4fa9076e5d14972d96c0fa1782f224a21373c1d9e44a8d7f1e79550ec",
+          "input_tokens": 11864,
+          "output_tokens": 174
+        },
+        {
+          "ordinal": 2,
+          "source_sha256": "ce0cd464d49eada36eae3ea694fbf85fad5d86a9301fc6315d993104eace7fe1",
+          "input_tokens": 8717,
+          "output_tokens": 623
+        }
+      ]
+    },
+    {
+      "instance_id": "scikit-learn__scikit-learn-12471",
+      "base_commit": "02dc9ed680e7f53f1b0d410dcdd37341c7958eb1",
+      "resolved": true,
+      "control_resolved": true,
+      "input_tokens": 28523,
+      "output_tokens": 609,
+      "control_input_tokens": 28569,
+      "control_output_tokens": 593,
+      "completed_model_calls": 2,
+      "control_model_calls": 2,
+      "usage_complete": true,
+      "pager_stats": {
+        "l1_tokens": 14391,
+        "l2_tokens": 0,
+        "peak_l1_tokens": 14391,
+        "peak_l2_tokens": 0,
+        "full_file_reloads": 0
+      },
+      "requests_with_l2": 0,
+      "source_record_sha256": "e64f5223a65d578203aa5df518dae378cadc2190ccd14ef01cfea752261727ac",
+      "patch_sha256": "08ed984a268702432339b45cb844ebc32014fac58cdb2bd29f300bc091b7ec71",
+      "report_sha256": "0ff1faff7f474e854885fa203466c8d8a8640b8cf42552bcea4e7407d5980be6",
+      "calls": [
+        {
+          "ordinal": 1,
+          "source_sha256": "ea676eebe26dd5a6b0cb8656156e1bdccd1135ca8a03d4335fd763ca0265e767",
+          "input_tokens": 10766,
+          "output_tokens": 60
+        },
+        {
+          "ordinal": 2,
+          "source_sha256": "19634160d4b3795c5f693c55ae9bf6533938f714af36af40959bd859a2e40ecd",
+          "input_tokens": 17757,
+          "output_tokens": 549
+        }
+      ]
+    },
+    {
+      "instance_id": "django__django-12497",
+      "base_commit": "a4881f5e5d7ee38b7e83301331a0b4962845ef8a",
+      "resolved": true,
+      "control_resolved": true,
+      "input_tokens": 40706,
+      "output_tokens": 778,
+      "control_input_tokens": 40899,
+      "control_output_tokens": 824,
+      "completed_model_calls": 2,
+      "control_model_calls": 2,
+      "usage_complete": true,
+      "pager_stats": {
+        "l1_tokens": 26492,
+        "l2_tokens": 0,
+        "peak_l1_tokens": 26492,
+        "peak_l2_tokens": 0,
+        "full_file_reloads": 0
+      },
+      "requests_with_l2": 0,
+      "source_record_sha256": "e06196896eeab01c5b361028048040e8ee3744f6ef5c58bc7bffa1347d36c4f8",
+      "patch_sha256": "a21ab4e776a463d3de1435412d518c01d48ff8778c8c4781983d66fe70bb30c1",
+      "report_sha256": "eddc7db331028850f358951160117fb3799e260e60af1804af27d61edc0fe241",
+      "calls": [
+        {
+          "ordinal": 1,
+          "source_sha256": "9ebd73349f7a067ba5ce5d9a296b1cca2f245acb0097dcfdec6fff4fb49a2a17",
+          "input_tokens": 11100,
+          "output_tokens": 101
+        },
+        {
+          "ordinal": 2,
+          "source_sha256": "866e64a38a4bbf5f45598d16da7bcee2b2dd0eab744b2047c6675094023c6360",
+          "input_tokens": 29606,
+          "output_tokens": 677
+        }
+      ]
+    },
+    {
+      "instance_id": "astropy__astropy-7746",
+      "base_commit": "d5bd3f68bb6d5ce3a61bdce9883ee750d1afade5",
+      "resolved": false,
+      "control_resolved": false,
+      "input_tokens": 201415,
+      "output_tokens": 1298,
+      "control_input_tokens": 201049,
+      "control_output_tokens": 1341,
+      "completed_model_calls": 3,
+      "control_model_calls": 3,
+      "usage_complete": true,
+      "pager_stats": {
+        "l1_tokens": 40197,
+        "l2_tokens": 2139,
+        "peak_l1_tokens": 76336,
+        "peak_l2_tokens": 2139,
+        "demotions": 1,
+        "full_file_reloads": 0
+      },
+      "requests_with_l2": 0,
+      "source_record_sha256": "8285dc362b49334d96f096dcd14177620db9ef24d31c9455a5d0644fcfe4ed75",
+      "patch_sha256": "52c8d9a701d1681ec18baa873812bdaccd11543ba8dd7acb8be909d57d0fc1f8",
+      "report_sha256": "fa98ea39a05d0d736f4df3e2acebd8551f108bb0be2f79ee2751e9334e470d14",
+      "calls": [
+        {
+          "ordinal": 1,
+          "source_sha256": "147b1db28bd37330771d8048844c0f1b6eb40528c1ddee9116a94b4f64d5370c",
+          "input_tokens": 39878,
+          "output_tokens": 95
+        },
+        {
+          "ordinal": 2,
+          "source_sha256": "967447c27a0e8161844cd3378335336ebe73cf482c39e1d00908ae93450d377d",
+          "input_tokens": 79492,
+          "output_tokens": 787
+        },
+        {
+          "ordinal": 3,
+          "source_sha256": "536e723cb3c454a96a7247e4dc6598ef647e2fd917ab60c6e4a8b370f2a37adb",
+          "input_tokens": 82045,
+          "output_tokens": 416
+        }
+      ]
+    }
+  ],
+  "interpretation": [
+    "Resolution matches the same five control tasks; measured combined tokens are 296 higher, so the strict savings gate did not pass.",
+    "No model request sent an L2 summary. The only demotion happened after the final reply and could not save model input.",
+    "This is a five-task historical comparison, not a completed fifty-task result or independent holdout."
+  ]
+}
