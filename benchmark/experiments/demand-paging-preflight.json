@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "record_type": "offline_context_preflight",
+  "recorded_at": "2026-10-30T21:13:34.707755+00:00",
+  "model_inference_requests": 0,
+  "swe_bench_tasks_executed": 0,
+  "source_revision": "25509b48719d81585aefeffa7123239e8e5c9a5e",
+  "source_archive_sha256": "629e61be67af3f16150cc9af897fb7a7ccd7f0a4f448350f56bf2c69d21c21a7",
+  "worker_sha256": "d855a756cce40aa08f523a1543d8eca923f2705c40c42d3d32f9a72e5f7677bb",
+  "preflight_sha256": "00c4a334ba6de88b6c4eebc791609f69606a252f1d2e5c2857485e1299825022",
+  "dockerfile_sha256": "4a1df625573e17144900275a2c089434eb0c6cd746346dfff4cabbe1a5fe7cec",
+  "agent_image": "better-aider-pager-demand:25509b48719d",
+  "agent_image_id": "sha256:b88380cb51252b75d3759cee3ea17f0ba02dc6c69d6ef8662899c1073220a647",
+  "control_image_id": "sha256:943049c6bb55c885d8d9d59252b0c7d57fb0ea107c8a0afb02a1ceaeac369daa",
+  "python_environment_matches_control": true,
+  "preflight": {
+    "status": "passed",
+    "context_policy": "demand",
+    "transition_counter_unit": "whitespace word-count units; not model tokens",
+    "inference_requests": 0,
+    "stats": {
+      "l1_tokens": 0,
+      "l2_tokens": 90,
+      "peak_l1_tokens": 24042,
+      "peak_l2_tokens": 90,
+      "demotions": 6
+    },
+    "completed_responses": 3,
+    "source_unchanged": true,
+    "settings": {
+      "max_l1_tokens": null,
+      "max_l1_files": null,
+      "max_l2_tokens": null,
+      "l1_ttl_turns": 2
+    },
+    "prompt_check": {
+      "unchanged_active_prompt": true,
+      "baseline_tokens": 5553,
+      "paged_tokens": 1584,
+      "saved_tokens": 3969,
+      "dependency_preloads": 0,
+      "inference_requests": 0,
+      "measurement": "Local full-message token estimate; not provider usage or task resolution"
+    }
+  },
+  "setup_check": {
+    "status": "prepared_only",
+    "experiment_id": "400d3df9df553936552a"
+  },
+  "verification": {
+    "focused_tests": {
+      "passed": 119,
+      "skipped": 1,
+      "includes_real_pyright": true
+    },
+    "basic_tests": {
+      "passed": 718,
+      "skipped": 6,
+      "subtests_passed": 67,
+      "known_windows_failures": [
+        "test_editor.py::test_pipe_editor_with_fake_editor",
+        "test_io.py::TestInputOutput::test_color_initialization",
+        "test_run_cmd.py::test_run_cmd_echo",
+        "test_utils.py::test_safe_abs_path_symlink_loop"
+      ]
+    }
+  },
+  "frozen_records_sha256": {
+    "benchmark/baselines/gpt-6.1-sol-subscription-50.json": "ab19808fbc4500fbc229330e68d66d634d8a407acfe1b443ef11c58aea420700",
+    "benchmark/experiments/lsp-graph-50.json": "d1ddcdbded3702a38b13ab3dba7bd391c0140f2cadad2a9a813d0b7f804b49a6",
+    "benchmark/experiments/pager-idle-50.json": "e7c5baf5ea765b0015d279b15938d87bc8d956329c2fd8c930e76714fa87797a",
+    "benchmark/experiments/pager-idle-50-analysis.json": "d9518a68a25a526f431d4ad8990b9bf40811c594b34e2c7d1e1f79bf2a704c7b"
+  },
+  "measurement_scope": "Local full-message estimates on an offline fixture; not provider usage, task resolution, or a new fifty-task benchmark."
+}

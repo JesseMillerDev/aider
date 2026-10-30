@@ -85,3 +85,18 @@ Completed demand-paging results go to `benchmark/experiments/pager-demand-50.jso
 The frozen control, LSP result and old paging result remain separate. Because
 these are reused tasks and a historical control, passing five tasks is a cost
 screen, not independent evidence of generalization or guaranteed full-run savings.
+
+## Recorded verification
+
+The [offline verification record](experiments/demand-paging-preflight.json) pins
+source revision `25509b48719d81585aefeffa7123239e8e5c9a5e` and its Docker image.
+In that Linux image the complete fixture prompt fell from **5,553 to 1,584 local
+tokens** after idle replacement, saving 3,969 tokens. Active prompts were
+unchanged and dependency preloads stayed at zero. Python dependencies matched
+the frozen control, and the new experiment configuration passed prepare-only
+validation. No model requests or SWE-bench tasks were executed.
+
+The focused runtime/harness suite passed **119 tests with one Windows symlink
+skip**, including real Pyright. The full basic suite passed **718 tests and 67
+subtests**, with six skips and the four previously recorded Windows
+editor/color/shell/symlink failures. Static analysis and whitespace checks passed.
