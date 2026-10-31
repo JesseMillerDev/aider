@@ -1,0 +1,80 @@
+{
+  "recorded_at": "2026-10-31T06:10:33.112058+00:00",
+  "experiment_id": "966dbc21cb9c109f1970",
+  "snapshot": "benchmark/experiments/combined-all-50.json",
+  "snapshot_sha256": "e9c30c4788f0cb7c36f479c1f4416e786c0d811310572c604daaa3bb8c06581a",
+  "baseline_sha256": "ab19808fbc4500fbc229330e68d66d634d8a407acfe1b443ef11c58aea420700",
+  "treatment_source_revision": "8bd9f5361fb7940f0df86791cf802c6a076c331e",
+  "comparison": {
+    "control_resolved": 32,
+    "treatment_resolved": 34,
+    "pass_at_1_percentage_point_change": 4,
+    "control_combined_tokens": 2155196,
+    "treatment_combined_tokens": 2232963,
+    "combined_token_delta": 77767,
+    "combined_token_percent_change": 3.6083493102251563,
+    "control_model_calls": 108,
+    "treatment_model_calls": 111,
+    "treatment_only_resolved": [
+      "astropy__astropy-14182",
+      "matplotlib__matplotlib-23314",
+      "pytest-dev__pytest-5221",
+      "scikit-learn__scikit-learn-13497"
+    ],
+    "control_only_resolved": [
+      "matplotlib__matplotlib-25433",
+      "pytest-dev__pytest-5103"
+    ],
+    "interpretation": "Two net additional solves and higher token use on one historical fifty-task sample; no demonstrated token savings or isolated feature attribution."
+  },
+  "feature_observations": {
+    "tasks_with_navigation": 3,
+    "navigation_action_attempts": {
+      "nav_def": 2,
+      "page_l1": 5
+    },
+    "tasks_sent_l2_context": 0,
+    "demotions": [
+      {
+        "instance_id": "astropy__astropy-7746",
+        "after_final_response": true,
+        "later_requests_with_l2": 0
+      }
+    ],
+    "dependency_preloads": 0,
+    "tasks_finishing_in_two_calls": 38,
+    "paging_conclusion": "The sole demotion occurred after the final response. No subsequent request used its summary, so idle paging produced no measured source replacement in this run."
+  },
+  "verification": {
+    "tasks": 50,
+    "official_reports_checked": 49,
+    "empty_predictions_checked": 1,
+    "provider_request_fingerprints_checked": 111,
+    "input_tokens_from_saved_provider_usage": 2193358,
+    "output_tokens_from_saved_provider_usage": 39605,
+    "usage_complete_tasks": 50,
+    "provider_error_records": 0,
+    "grading_infrastructure_errors": 0,
+    "all_prediction_hashes_match": true,
+    "frozen_baseline_and_host_sources_unchanged": true,
+    "finalization_changed_provider_transcripts": false
+  },
+  "infrastructure_recovery": {
+    "instances": [
+      "astropy__astropy-14182",
+      "matplotlib__matplotlib-24149"
+    ],
+    "cause": "Pyright process wait timed out during teardown after prediction and terminal report emission.",
+    "cached_replies_replayed": 5,
+    "new_model_calls_for_recovery": 0,
+    "reconstruction": "Original read-only repo-map and date checkpoints; full request fingerprints and final patch hashes matched.",
+    "timing_limit": "Original total worker runtime is unavailable for these two tasks and is omitted. Replayed runtime is not substituted.",
+    "provenance": "Each affected snapshot instance includes infrastructure_recovery with original transcript and patch fingerprints."
+  },
+  "limitations": [
+    "Historical comparison, not randomized or interleaved.",
+    "Reused development tasks, not an independent holdout.",
+    "Combined features prevent assigning the score change to one feature.",
+    "Short trajectories did not exercise L2 context reuse."
+  ]
+}
