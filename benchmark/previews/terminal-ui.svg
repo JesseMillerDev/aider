@@ -154,9 +154,9 @@
             <circle cx="22" cy="0" r="7" fill="#febc2e"/>
             <circle cx="44" cy="0" r="7" fill="#28c840"/>
             </g>
-        
+
     <g transform="translate(9, 41)" clip-path="url(#terminal-3186072525-clip-terminal)">
-    
+
     <g class="terminal-3186072525-matrix">
     <text class="terminal-3186072525-r1" x="0" y="20" textLength="24.4" clip-path="url(#terminal-3186072525-line-0)">┌─</text><text class="terminal-3186072525-r1" x="24.4" y="20" textLength="378.2" clip-path="url(#terminal-3186072525-line-0)">───────────────────────────────</text><text class="terminal-3186072525-r2" x="402.6" y="20" textLength="170.8" clip-path="url(#terminal-3186072525-line-0)">&#160;Better&#160;Aider&#160;</text><text class="terminal-3186072525-r1" x="573.4" y="20" textLength="378.2" clip-path="url(#terminal-3186072525-line-0)">───────────────────────────────</text><text class="terminal-3186072525-r1" x="951.6" y="20" textLength="24.4" clip-path="url(#terminal-3186072525-line-0)">─┐</text><text class="terminal-3186072525-r3" x="976" y="20" textLength="12.2" clip-path="url(#terminal-3186072525-line-0)">
 </text><text class="terminal-3186072525-r1" x="0" y="44.4" textLength="12.2" clip-path="url(#terminal-3186072525-line-1)">│</text><text class="terminal-3186072525-r4" x="36.6" y="44.4" textLength="341.6" clip-path="url(#terminal-3186072525-line-1)">gpt-4o&#160;with&#160;diff&#160;edit&#160;format</text><text class="terminal-3186072525-r1" x="963.8" y="44.4" textLength="12.2" clip-path="url(#terminal-3186072525-line-1)">│</text><text class="terminal-3186072525-r3" x="976" y="44.4" textLength="12.2" clip-path="url(#terminal-3186072525-line-1)">

@@ -61,6 +61,10 @@ def main():
                           style="dim")
             segments = list(console._record_buffer)
             console.save_svg(str(destination / "terminal-ui.svg"), title="Better Aider")
+            svg = destination / "terminal-ui.svg"
+            svg.write_text("\n".join(line.rstrip() for line in
+                                     svg.read_text(encoding="utf-8").splitlines()) + "\n",
+                           encoding="utf-8")
             # save_svg clears the record buffer by default; keep the original for HTML/PNG.
             console._record_buffer[:] = segments
             console.save_html(str(destination / "terminal-ui.html"), theme=MONOKAI, clear=False)
