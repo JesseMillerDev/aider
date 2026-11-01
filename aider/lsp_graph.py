@@ -49,6 +49,8 @@ class SemanticGraph:
         self.position_cache = {}
         self.resolutions = {}
         self.stats = Counter()
+        self.map_count = 0
+        self.last_elapsed_seconds = None
 
     def _snapshot(self, fnames, deadline):
         hashes = {}
@@ -115,7 +117,8 @@ class SemanticGraph:
     ):
         self.stats = Counter()
         self.resolutions = {}
-        deadline = time.monotonic() + self.timeout
+        started = time.monotonic()
+        deadline = started + self.timeout
         old_deadline = getattr(self.bridge, "deadline", None)
         self.bridge.deadline = deadline
         try:
@@ -205,6 +208,8 @@ class SemanticGraph:
         finally:
             self.bridge.deadline = old_deadline
             self.stats["queries"] = queries if "queries" in locals() else 0
+            self.map_count += 1
+            self.last_elapsed_seconds = time.monotonic() - started
 
     def multiplier(self, referencer, definer, symbol):
         evidence = self.resolutions.get((referencer, symbol))

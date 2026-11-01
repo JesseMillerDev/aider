@@ -583,6 +583,11 @@ class Coder:
             self.linter.set_linter(lang, cmd)
 
     def show_announcements(self):
+        if self.io.compact_ui is True:
+            from aider.terminal_ui import show_header
+
+            show_header(self.io, self, self.get_announcements())
+            return
         bold = True
         for line in self.get_announcements():
             self.io.tool_output(line, bold=bold)
@@ -592,6 +597,9 @@ class Coder:
         path = self.abs_root_path(rel_fname)
         self.abs_fnames.add(path)
         if self.context_pager is not None:
+            if path in self.l2_interface_fnames:
+                self.context_pager.stats["promotions"] += 1
+                self.context_pager.stats["full_file_reloads"] += 1
             self.l2_interface_fnames.discard(path)
             self.context_pager.forgotten.discard(path)
         self.check_added_files()
@@ -942,6 +950,10 @@ class Coder:
             self.commands.cmd_copy_context()
 
     def get_input(self):
+        if self.io.compact_ui is True:
+            from aider.terminal_ui import session_status
+
+            self.io.session_status = session_status(self)
         inchat_files = self.get_inchat_relative_files()
         read_only_files = [self.get_rel_fname(fname) for fname in self.abs_read_only_fnames]
         all_files = sorted(set(inchat_files + read_only_files))
@@ -1906,6 +1918,13 @@ class Coder:
         self.io.log_llm_history("TO LLM", format_messages(messages))
 
         completion = None
+        sent_l2 = False
+        if self.context_pager is not None and self.l2_interface_fnames:
+            from aider.context_pager import INTERFACE_PREFIX
+
+            sent_l2 = any(isinstance(message.get("content"), str)
+                          and message["content"].startswith(INTERFACE_PREFIX)
+                          for message in messages)
         try:
             hash_object, completion = model.send_completion(
                 messages,
@@ -1922,6 +1941,10 @@ class Coder:
 
             # Calculate costs for successful responses
             self.calculate_and_show_tokens_and_cost(messages, completion)
+            if self.context_pager is not None:
+                self.context_pager.stats["completed_model_requests"] += 1
+                if sent_l2:
+                    self.context_pager.stats["completed_requests_with_l2"] += 1
 
         except LiteLLMExceptions().exceptions_tuple() as err:
             ex_info = LiteLLMExceptions().get_ex_info(err)
@@ -2235,8 +2258,14 @@ class Coder:
             prompt_tokens=prompt_tokens,
             completion_tokens=completion_tokens,
             total_tokens=prompt_tokens + completion_tokens,
-            cost=None if getattr(self.main_model, "billing_mode", None) == "chatgpt_subscription" else self.message_cost,
-            total_cost=None if getattr(self.main_model, "billing_mode", None) == "chatgpt_subscription" else self.total_cost,
+            cost=(
+                None if getattr(self.main_model, "billing_mode", None) == "chatgpt_subscription"
+                else self.message_cost
+            ),
+            total_cost=(
+                None if getattr(self.main_model, "billing_mode", None) == "chatgpt_subscription"
+                else self.total_cost
+            ),
         )
 
         self.message_cost = 0.0

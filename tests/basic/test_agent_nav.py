@@ -97,6 +97,20 @@ def block(*actions):
     return "```aider-nav\n" + "\n".join(actions) + "\n```"
 
 
+def test_navigation_audit_distinguishes_success_failure_and_empty_results(tmp_path):
+    coder, nav, paths = setup(tmp_path)
+    nav.handle(block("/page_l1 b.py", "/page_l1 missing.py", "/nav_refs caller"))
+    assert nav.stats == {"attempted": 3, "succeeded": 1, "failed": 1, "empty": 1}
+    assert [event["status"] for event in nav.events] == ["succeeded", "failed", "empty"]
+    assert paths["b.py"] in coder.abs_fnames
+    assert "not a tracked" in nav.events[1]["detail"]
+    for _ in range(10):
+        nav.handle(block("/page_l1 b.py"))
+    assert len(nav.events) == 8
+    nav.handle(block("/nav_def"))
+    assert nav.stats["invalid_responses"] == 1
+
+
 def test_protocol_only_exact_explicit_blocks():
     assert parse_actions("Please /page_l1 a.py") is None
     assert parse_actions('```python\nx = "```aider-nav"\n/page_l1 a.py\n```') is None

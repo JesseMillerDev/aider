@@ -191,6 +191,7 @@ class ContextPager:
         self.l2_paths = set()
         self.test_status = "unknown"
         self.stats = Counter()
+        self.demotion_notes = {}
         self._last_overflow = None
 
     def _path(self, path):
@@ -225,6 +226,7 @@ class ContextPager:
             digest = self._digest(source)
             state = self.states.setdefault(path, FileState(last_referenced_turn=turn))
             if state.digest and state.digest != digest:
+                self.demotion_notes.pop(path, None)
                 state.edited, state.last_edited_turn = True, turn
                 if state.lint_digest != digest:
                     state.lint = "unknown" if state.lint != "failed" else "failed"
@@ -358,6 +360,7 @@ class ContextPager:
         selected = self._select_l2(coder, candidates)
         if path not in selected:
             coder.abs_fnames.add(path)
+            self.demotion_notes[path] = "complete interface unavailable or exceeds L2 cap"
             return False
         coder.l2_interface_fnames = selected
         self.l2_paths = set(selected)
@@ -372,9 +375,35 @@ class ContextPager:
                 self.l2_paths = set(previous)
         if not smaller:
             self.stats["unhelpful_demotions"] += 1
+            self.demotion_notes[path] = "replacement did not lower estimated message cost"
             return False
+        self.demotion_notes.pop(path, None)
         self.stats["demotions"] += 1
         return True
+
+    def file_status(self, path):
+        """Explain last observed protection without refreshing or changing context."""
+        state = self.states.get(path)
+        if state is None:
+            return "not yet observed by pager"
+        if self.test_status == "failed" or state.test == "failed":
+            return "protected: unresolved test failure"
+        if state.pending:
+            return "protected: pending edit/reflection"
+        if state.lint == "failed":
+            return "protected: lint failure"
+        if state.edited and state.lint != "clean":
+            return "protected: edited; lint not confirmed clean"
+        if path in self.current_refs:
+            return "active: referenced this response"
+        if path in self.demotion_notes:
+            return self.demotion_notes[path]
+        if not self.automatic:
+            return "manual paging"
+        idle = self.turn - max(state.last_referenced_turn, state.last_edited_turn)
+        if idle < self.l1_ttl_turns:
+            return f"idle {max(0, idle)}/{self.l1_ttl_turns} responses"
+        return "idle; awaiting interface/cost eligibility check"
 
     def _context_tokens(self, coder):
         """Count complete source/interface messages, including their instruction overhead."""

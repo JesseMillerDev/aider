@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+.r1 {color: #727272; text-decoration-color: #727272}
+.r2 {color: #326e7b; text-decoration-color: #326e7b; font-weight: bold}
+.r3 {font-weight: bold}
+.r4 {color: #58d1eb; text-decoration-color: #58d1eb}
+.r5 {color: #58d1eb; text-decoration-color: #58d1eb; font-weight: bold}
+body {
+    color: #d9d9d9;
+    background-color: #0c0c0c;
+}
+</style>
+</head>
+<body>
+    <pre style="font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><code style="font-family:inherit"><span class="r1">┌────────────────────────────────</span><span class="r2"> Better Aider </span><span class="r1">────────────────────────────────┐</span>
+<span class="r1">│</span>  <span class="r3">gpt-4o with diff edit format</span>                                                <span class="r1">│</span>
+<span class="r1">│</span>  <span class="r4">example-repo  /  master</span><span class="r1">  ·  map 1.0k</span>                                        <span class="r1">│</span>
+<span class="r1">│</span>  LSP on  ·  navigation on  ·  paging automatic                               <span class="r1">│</span>
+<span class="r1">│</span>  <span class="r1">/status inspect files &amp; activity    /help commands</span>                          <span class="r1">│</span>
+<span class="r1">└───────────────────── v0.86.3.dev54+g477010f27.d20261029 ─────────────────────┘</span>
+Weak model: gpt-4o-mini
+Added service.py to the chat.
+<span class="r1">Preview fixture · no inference or language-server queries</span>
+
+<span class="r5">&gt; /status</span>
+<span class="r1">┌───────────────────────────── Context &amp; activity ─────────────────────────────┐</span>
+<span class="r1">│</span>                                                                              <span class="r1">│</span>
+<span class="r1">│</span> <span class="r5">L1 1 files / ~373 tokens  ·  L2 1 files / ~19 tokens  ·  read-only 0</span>         <span class="r1">│</span>
+<span class="r1">│</span> Paging automatic (idle 2; uncapped): 1 demotions, 1 explicit loads/reloads.  <span class="r1">│</span>
+<span class="r1">│</span> L2 in 0/0 completed requests.                                                <span class="r1">│</span>
+<span class="r1">│</span> LSP ranking on · 0 RPC · 0 timeouts/disconnects · 0 unavailable servers.     <span class="r1">│</span>
+<span class="r1">│</span> LSP map: not generated yet.                                                  <span class="r1">│</span>
+<span class="r1">│</span> Navigation: 1 succeeded, 1 failed, 0 empty; 0 malformed responses.           <span class="r1">│</span>
+<span class="r1">│</span>                                                                              <span class="r1">│</span>
+<span class="r1">│</span> <span class="r3"> Level    File           ~tokens    Observed state                          </span> <span class="r1">│</span>
+<span class="r1">│</span>  L1       service.py     373       <span class="r1"> idle 0/2 responses                      </span> <span class="r1">│</span>
+<span class="r1">│</span>  L2       models.py      19        <span class="r1"> interface; implementation omitted       </span> <span class="r1">│</span>
+<span class="r1">│</span> /page_l1 [succeeded] Loaded complete file &quot;models.py&quot; into L1.               <span class="r1">│</span>
+<span class="r1">│</span> /page_l1 [failed] The path is not a tracked or already loaded repository     <span class="r1">│</span>
+<span class="r1">│</span> file.                                                                        <span class="r1">│</span>
+<span class="r1">│</span>                                                                              <span class="r1">│</span>
+<span class="r1">│</span> <span class="r1">~tokens estimates source only, not full prompt usage or savings.</span>             <span class="r1">│</span>
+<span class="r1">│</span> <span class="r1">States reflect the last pager observation. Inspection does not change </span>       <span class="r1">│</span>
+<span class="r1">│</span> <span class="r1">context.</span>                                                                     <span class="r1">│</span>
+<span class="r1">│</span>                                                                              <span class="r1">│</span>
+<span class="r1">└──────────────────────────────────────────────────────────────────────────────┘</span>
+
+<span class="r5">› Describe the next change…</span>
+<span class="r1"> gpt-4o  ·  master  ·  L1 1 / L2 1  ·  in 0 / out 0  ·  /status</span>
+</code></pre>
+</body>
+</html>

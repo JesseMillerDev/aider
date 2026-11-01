@@ -8,6 +8,10 @@ Each has an independent `--no-enable-*` flag. The LSP budget remains 10 seconds 
 paging size caps remain unset. Programmatic constructors stay opt-in; the historical
 milestones and frozen benchmark settings below retain their original configurations.
 
+The [compact CLI and `/status` inspector](CLI_UI.md) expose current context tiers,
+observed paging protections, LSP activity and actual navigation outcomes without
+making inference requests or changing the working context.
+
 Subscription inference is available through the shared ChatGPT transport integration;
 see [ChatGPT subscription setup](CHATGPT_SUBSCRIPTION.md). The isolated execution/telemetry
 runner has completed the [50-task control baseline](baselines/README.md).

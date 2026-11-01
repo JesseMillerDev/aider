@@ -483,6 +483,18 @@ class Commands:
         self._clear_chat_history()
         self.io.tool_output("All files dropped and chat history cleared.")
 
+    def cmd_status(self, args):
+        "Inspect context tiers, paging protection, LSP activity and navigation outcomes"
+        if args.strip() not in ("", "json"):
+            self.io.tool_error("Usage: /status [json]")
+            return
+        from aider.terminal_ui import show_context
+
+        show_context(self.io, self.coder, as_json=args.strip() == "json")
+
+    def completions_status(self):
+        return ["json"]
+
     def cmd_tokens(self, args):
         "Report on the number of tokens used by the current chat context"
 
@@ -562,7 +574,9 @@ class Commands:
         cost_pad = " " * cost_width
         total = 0
         total_cost = 0.0
-        subscription = getattr(self.coder.main_model, "billing_mode", None) == "chatgpt_subscription"
+        subscription = (
+            getattr(self.coder.main_model, "billing_mode", None) == "chatgpt_subscription"
+        )
         for tk, msg, tip in res:
             total += tk
             cost = tk * (self.coder.main_model.info.get("input_cost_per_token") or 0)
@@ -575,7 +589,10 @@ class Commands:
         total_label = "plan     " if subscription else f"${total_cost:7.4f} "  # noqa: E231
         self.io.tool_output(f"{total_label}{fmt(total)} tokens total")
         if subscription:
-            self.io.tool_output("Using ChatGPT plan; API dollar cost unavailable. Manage usage: https://chatgpt.com/settings/usage")
+            self.io.tool_output(
+                "Using ChatGPT plan; API dollar cost unavailable. "
+                "Manage usage: https://chatgpt.com/settings/usage"
+            )
 
         limit = self.coder.main_model.info.get("max_input_tokens") or 0
         if not limit:
@@ -1001,7 +1018,9 @@ class Commands:
                 # Use substring matching like we do for read-only files
                 matched_files = [
                     self.coder.get_rel_fname(f)
-                    for f in self.coder.abs_fnames | getattr(self.coder, "l2_interface_fnames", set())
+                    for f in (
+                        self.coder.abs_fnames | getattr(self.coder, "l2_interface_fnames", set())
+                    )
                     if expanded_word in f
                 ]
 

@@ -5,6 +5,7 @@ import hashlib
 import re
 import shlex
 import time
+from collections import Counter, deque
 from dataclasses import dataclass
 from pathlib import Path
 from urllib.parse import unquote, urlparse
@@ -117,6 +118,8 @@ class AgentNavigator:
         self.owned_map = None
         self.allowed = None
         self.synced = {}
+        self.stats = Counter()
+        self.events = deque(maxlen=8)
 
     def _allowed(self):
         if self.allowed is None:
@@ -451,7 +454,7 @@ class AgentNavigator:
                 messages.append(self._page(paths[0]))
             elif len(paths) > 1:
                 messages.append("Multiple target files; use /page_l1 to select one.")
-        return "\n".join(messages)
+        return "\n".join(messages), len(sites)
 
     def execute(self, actions, manual=False):
         if not 1 <= len(actions) <= 3:
@@ -460,6 +463,7 @@ class AgentNavigator:
         deadline = time.monotonic() + self.timeout
         messages = []
         for action, args in actions:
+            status = "succeeded"
             try:
                 if action not in ACTIONS:
                     raise NavigationError("Unknown navigation action.")
@@ -470,9 +474,16 @@ class AgentNavigator:
                     self.coder.context_pager.demote_file(self.coder, path)
                     message = f'Compressed "{self._name(path)}" into a read-only L2 interface.'
                 else:
-                    message = self._lookup(action, args[0], deadline, manual)
+                    message, matched = self._lookup(action, args[0], deadline, manual)
+                    if not matched:
+                        status = "empty"
             except (NavigationError, OSError, UnicodeError, ValueError) as err:
                 message = str(err)
+                status = "failed"
+            self.stats["attempted"] += 1
+            self.stats[status] += 1
+            self.events.append({"action": action, "status": status,
+                                "detail": message.splitlines()[0][:180] if message else ""})
             messages.append(f"/{action}: {message}")
         return "\n\n".join(messages)
 
@@ -481,6 +492,7 @@ class AgentNavigator:
         try:
             actions = parse_actions(content)
         except NavigationError as err:
+            self.stats["invalid_responses"] += 1
             return f"Navigation rejected: {err} No edits from this response were applied."
         if actions is None:
             return None

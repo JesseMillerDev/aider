@@ -37,6 +37,11 @@ the three features, add:
 Programmatic constructors and pinned benchmark configurations keep their existing
 opt-in behavior; changing CLI defaults does not change recorded experiments.
 
+The interactive CLI now uses a compact header and input status line. `/status`
+inspects context levels and observed feature activity; `/status json` exports the
+same data. Use `--terminal-ui classic` for the original layout. See the
+[terminal UI guide and preview](CLI_UI.md).
+
 Optional reasoning effort:
 
 ```powershell

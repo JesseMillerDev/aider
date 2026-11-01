@@ -263,8 +263,12 @@ class InputOutput:
         root=".",
         notifications=False,
         notifications_command=None,
+        terminal_ui="compact",
     ):
         self.placeholder = None
+        self.terminal_ui = terminal_ui
+        self.session_status = None
+        self._assistant_heading_shown = False
         self.interrupted = False
         self.never_prompts = set()
         self.editingmode = editingmode
@@ -410,6 +414,11 @@ class InputOutput:
                 }
             )
 
+        if self.compact_ui:
+            style_dict[""] = ""
+            style_dict["bottom-toolbar"] = "noreverse"
+            style_dict["prompt"] = f"bold {self.user_input_color or 'ansicyan'}"
+
         # Conditionally add 'completion-menu' style
         completion_menu_style = []
         if self.completion_menu_bg_color:
@@ -507,6 +516,9 @@ class InputOutput:
                 raise
 
     def rule(self):
+        if self.compact_ui:
+            self.console.print()
+            return
         if self.pretty:
             style = dict(style=self.user_input_color) if self.user_input_color else dict()
             self.console.rule(**style)
@@ -541,13 +553,17 @@ class InputOutput:
                 get_rel_fname(fname, root) for fname in (abs_read_only_fnames or [])
             ]
             show = self.format_files_for_input(rel_fnames, rel_read_only_fnames)
+        if self.compact_ui:
+            show = ""
 
         prompt_prefix = ""
         if edit_format:
             prompt_prefix += edit_format
         if self.multiline_mode:
             prompt_prefix += (" " if edit_format else "") + "multi"
-        prompt_prefix += "> "
+        if self.compact_ui and prompt_prefix:
+            prompt_prefix += " "
+        prompt_prefix += "› " if self.compact_ui else "> "
 
         show += prompt_prefix
         self.prompt_prefix = prompt_prefix
@@ -654,7 +670,7 @@ class InputOutput:
                         return self.prompt_prefix
 
                     line = self.prompt_session.prompt(
-                        show,
+                        [("class:prompt", show)] if self.compact_ui else show,
                         default=default,
                         completer=completer_instance,
                         reserve_space_for_menu=4,
@@ -663,6 +679,7 @@ class InputOutput:
                         key_bindings=kb,
                         complete_while_typing=True,
                         prompt_continuation=get_continuation,
+                        bottom_toolbar=self.get_bottom_toolbar if self.compact_ui else None,
                     )
                 else:
                     line = input(show)
@@ -1012,6 +1029,7 @@ class InputOutput:
         self.console.print(*messages, style=style)
 
     def get_assistant_mdstream(self):
+        self.assistant_heading()
         mdargs = dict(
             style=self.assistant_output_color,
             code_theme=self.code_theme,
@@ -1038,7 +1056,13 @@ class InputOutput:
         else:
             show_resp = Text(message or "(empty response)")
 
+        self.assistant_heading()
         self.console.print(show_resp)
+
+    def assistant_heading(self):
+        if self.compact_ui and not self._assistant_heading_shown:
+            self.console.print(Text("Better Aider", style="bold cyan"))
+            self._assistant_heading_shown = True
 
     def set_placeholder(self, placeholder):
         """Set a one-time placeholder text for the next input prompt."""
@@ -1050,6 +1074,20 @@ class InputOutput:
     def llm_started(self):
         """Mark that the LLM has started processing, so we should ring the bell on next input"""
         self.bell_on_next_input = True
+        self._assistant_heading_shown = False
+
+    @property
+    def compact_ui(self):
+        return (self.terminal_ui == "compact" and self.pretty
+                and self.prompt_session is not None and self.console.is_terminal)
+
+    def get_bottom_toolbar(self):
+        if not self.session_status:
+            return []
+        from aider.terminal_ui import toolbar
+
+        width = self.prompt_session.output.get_size().columns
+        return toolbar(self.session_status, width)
 
     def get_default_notification_command(self):
         """Return a default notification command based on the operating system."""

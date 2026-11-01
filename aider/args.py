@@ -352,6 +352,10 @@ def get_parser(default_config_files, git_root):
     ##########
     group = parser.add_argument_group("Output settings")
     group.add_argument(
+        "--terminal-ui", choices=("compact", "classic"), default="compact",
+        help="Terminal layout: compact header and status line, or classic (default: compact)",
+    )
+    group.add_argument(
         "--dark-mode",
         action="store_true",
         help="Use colors suitable for a dark terminal background (default: False)",
