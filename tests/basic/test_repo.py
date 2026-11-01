@@ -19,6 +19,62 @@ class TestRepo(unittest.TestCase):
     def setUp(self):
         self.GPT35 = Model("gpt-3.5-turbo")
 
+    def test_tracked_files_in_native_git_pack_not_discovered_by_gitdb(self):
+        for keep_head_loose in (False, True):
+            with self.subTest(keep_head_loose=keep_head_loose):
+                self.assert_native_git_pack_readable(keep_head_loose)
+
+    def assert_native_git_pack_readable(self, keep_head_loose):
+        with GitTemporaryDirectory():
+            native = git.Repo()
+            Path("tracked.py").write_text("value = 1\n")
+            native.index.add(["tracked.py"])
+            commit = native.index.commit("Initial file")
+            commit_sha = commit.hexsha
+            commit_path = Path(native.git_dir) / "objects" / commit_sha[:2] / commit_sha[2:]
+            commit_bytes = commit_path.read_bytes()
+            native.git.gc("--prune=now")
+            pack_dir = Path(native.git_dir) / "objects" / "pack"
+            packs = list(pack_dir.glob("pack-*.pack"))
+            self.assertTrue(packs)
+            for path in list(pack_dir.glob("pack-*")):
+                path.rename(path.with_name("loose-" + path.name[len("pack-"):]))
+            if keep_head_loose:
+                commit_path.parent.mkdir(exist_ok=True)
+                commit_path.write_bytes(commit_bytes)
+            self.assertIn("tracked.py", native.git.ls_tree("-r", "--name-only", "HEAD"))
+
+            Path("tracked.py").write_text("value = 2\n")
+            staged = Path("staged file.py")
+            staged.write_text("staged = True\n")
+            native.index.add([str(staged)])
+            before = native.git.status("--porcelain")
+            repo = GitRepo(InputOutput(pretty=False), None, ".")
+            with patch.object(repo.io, "tool_error") as errors:
+                self.assertEqual(set(repo.get_tracked_files()), {"tracked.py", str(staged)})
+                self.assertIsNone(repo.git_repo_error)
+                errors.assert_not_called()
+            self.assertIsInstance(repo.repo.odb, git.GitCmdObjectDB)
+            self.assertEqual(set(repo.get_tracked_files()), {"tracked.py", str(staged)})
+            self.assertEqual(native.git.status("--porcelain"), before)
+            self.assertEqual(Path("tracked.py").read_text(), "value = 2\n")
+
+    def test_missing_tree_object_is_still_reported(self):
+        with GitTemporaryDirectory():
+            native = git.Repo()
+            Path("tracked.py").write_text("value = 1\n")
+            native.index.add(["tracked.py"])
+            commit = native.index.commit("Initial file")
+            tree = commit.tree.hexsha
+            tree_path = Path(native.git_dir) / "objects" / tree[:2] / tree[2:]
+            self.assertTrue(tree_path.is_file())
+            tree_path.unlink()
+            repo = GitRepo(InputOutput(pretty=False), None, ".")
+            with patch.object(repo.io, "tool_error") as errors:
+                self.assertEqual(repo.get_tracked_files(), [])
+                self.assertIsNotNone(repo.git_repo_error)
+                errors.assert_called()
+
     def test_diffs_empty_repo(self):
         with GitTemporaryDirectory():
             repo = git.Repo()

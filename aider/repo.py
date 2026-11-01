@@ -430,6 +430,31 @@ class GitRepo:
 
         return diffs
 
+    def _use_native_git_for_missing_object(self, err):
+        if not isinstance(err, git.exc.BadObject) or not isinstance(self.repo.odb, git.GitDB):
+            return False
+
+        # GitDB only discovers pack-*.pack; native Git also reads packs such as
+        # loose-*.pack. Verify the specific object before accepting a fallback.
+        native = None
+        try:
+            native = git.Repo(self.root, odbt=git.GitCmdObjectDB)
+            native.odb.info(err.args[0])
+        except ANY_GIT_ERROR:
+            if native is not None:
+                native.close()
+            return False
+
+        previous = self.repo
+        self.repo = native
+        self.tree_files.clear()
+        self.git_repo_error = None
+        previous.close()
+        self.io.tool_warning(
+            "GitDB could not read an object; using native Git for this repository."
+        )
+        return True
+
     def get_tracked_files(self):
         if not self.repo:
             return []
@@ -439,6 +464,8 @@ class GitRepo:
         except ValueError:
             commit = None
         except ANY_GIT_ERROR as err:
+            if self._use_native_git_for_missing_object(err):
+                return self.get_tracked_files()
             self.git_repo_error = err
             self.io.tool_error(f"Unable to list files in git repo: {err}")
             self.io.tool_output("Is your git repo corrupted?")
@@ -468,6 +495,8 @@ class GitRepo:
                         except StopIteration:
                             break
                 except ANY_GIT_ERROR as err:
+                    if self._use_native_git_for_missing_object(err):
+                        return self.get_tracked_files()
                     self.git_repo_error = err
                     self.io.tool_error(f"Unable to list files in git repo: {err}")
                     self.io.tool_output("Is your git repo corrupted?")
