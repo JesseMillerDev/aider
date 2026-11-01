@@ -51,11 +51,13 @@ def run_cmd_subprocess(command, verbose=False, cwd=None, encoding=sys.stdout.enc
         shell = os.environ.get("SHELL", "/bin/sh")
         parent_process = None
 
-        # Determine the appropriate shell
+        # Legacy /run and shell fences use COMSPEC on Windows, as advertised
+        # in the model's platform information. The parent terminal is not a
+        # command dialect and must not introduce a second parsing pass.
         if platform.system() == "Windows":
-            parent_process = get_windows_parent_process_name()
-            if parent_process == "powershell.exe":
-                command = f"powershell -Command {command}"
+            shell = os.environ.get("COMSPEC") or "cmd.exe"
+            if verbose:
+                parent_process = get_windows_parent_process_name()
 
         if verbose:
             print("Running command:", command)
@@ -64,6 +66,8 @@ def run_cmd_subprocess(command, verbose=False, cwd=None, encoding=sys.stdout.enc
                 print("Parent process:", parent_process)
 
         input_options = {} if interactive else {"stdin": subprocess.DEVNULL}
+        if platform.system() == "Windows":
+            input_options["executable"] = shell
         process = subprocess.Popen(
             command,
             stdout=subprocess.PIPE,

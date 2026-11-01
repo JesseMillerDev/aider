@@ -47,6 +47,26 @@ def test_terminal_returns_real_exit_output_and_workspace_without_reading_stdin(t
     assert "eof=True" in result and str(tmp_path) in result
 
 
+@pytest.mark.skipif(os.name != "nt", reason="PowerShell native argument regression")
+def test_powershell_terminal_preserves_spaced_native_export_preset(tmp_path):
+    import json
+
+    (tmp_path / "probe.py").write_text(
+        "import json,sys\nfrom pathlib import Path\n"
+        "Path('args.json').write_text(json.dumps(sys.argv[1:]))\n", encoding="utf-8",
+    )
+    coder = SimpleNamespace(
+        io=InputOutput(pretty=False, fancy_input=False, yolo=True), root=str(tmp_path)
+    )
+    command = ("& '" + sys.executable.replace("'", "''")
+               + "' probe.py --export-release \"Windows Desktop\" builds/game.exe")
+    result = run_terminal(coder, command)
+    assert "Exit code: 0" in result
+    assert json.loads((tmp_path / "args.json").read_text()) == [
+        "--export-release", "Windows Desktop", "builds/game.exe"
+    ]
+
+
 def test_terminal_requires_explicit_confirmation_without_yolo_and_does_not_execute(tmp_path):
     io = InputOutput(pretty=False, fancy_input=False, yes=True)
     coder = SimpleNamespace(io=io, root=str(tmp_path))

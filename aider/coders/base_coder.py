@@ -422,6 +422,7 @@ class Coder:
         self.io = io
 
         self.shell_commands = []
+        self._shell_command_failed = False
 
         if not auto_commits:
             dirty_commits = False
@@ -1801,6 +1802,12 @@ class Coder:
                 dict(role="user", content=shared_output),
                 dict(role="assistant", content="Ok"),
             ]
+            if self._shell_command_failed:
+                self.reflected_message = (
+                    "The shell command failed; remaining suggested commands were skipped. "
+                    "Use the error output above to correct the failure before continuing."
+                )
+                return
 
         if edited and self.auto_test:
             test_errors = self.commands.cmd_test(self.test_cmd)
@@ -2683,6 +2690,7 @@ class Coder:
         return edits
 
     def run_shell_commands(self):
+        self._shell_command_failed = False
         if not self.suggest_shell_commands:
             return ""
 
@@ -2696,9 +2704,12 @@ class Coder:
             output = self.handle_shell_commands(command, group)
             if output:
                 accumulated_output += output + "\n\n"
+            if self._shell_command_failed:
+                break
         return accumulated_output
 
     def handle_shell_commands(self, commands_str, group):
+        self._shell_command_failed = False
         commands = commands_str.strip().splitlines()
         command_count = sum(
             1 for cmd in commands if cmd.strip() and not cmd.strip().startswith("#")
@@ -2731,6 +2742,13 @@ class Coder:
             )
             if output:
                 accumulated_output += f"Output from {command}\n{output}\n"
+            if exit_status != 0:
+                self._shell_command_failed = True
+                failure = (f"Command failed with exit code {exit_status}. "
+                           "Remaining suggested commands were skipped.")
+                self.io.tool_error(failure)
+                accumulated_output += failure + "\n"
+                break
 
         if accumulated_output.strip() and self.io.confirm_ask(
             "Add command output to the chat?", allow_never=True

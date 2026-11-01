@@ -63,6 +63,19 @@ argument-quoting rules still apply. Complex inline programs can use script files
 The tool reports actual output, exit code, working directory and elapsed time.
 PowerShell errors stop the action and native executable exit codes are propagated.
 
+Legacy shell fences and `/run` use `COMSPEC` (CMD) on Windows, matching the shell
+advertised in platform information. Launching Better Aider from PowerShell does
+not change that dialect. Use `/run_command` for PowerShell syntax. CMD `if not
+exist`, quoted arguments such as `"Windows Desktop"`, and `&&` chains pass through
+without a nested PowerShell parsing step. GUI executables finish before a success
+chain continues; a failing executable prevents the launch portion of the chain.
+
+Suggested shell-command sequences stop at the first nonzero exit code, including
+later shell blocks in the same response. If the command output is shared with the
+agent, the failure enters the existing bounded reflection loop so it can correct
+the problem. YOLO shares the output automatically; normal mode keeps the sharing
+confirmation.
+
 Commands require explicit confirmation in normal mode; YOLO approves them.
 Default timeout is 120 seconds; `/run_command --timeout=600 ...` overrides it up to
 3600 seconds. Timeout/interrupt cleanup terminates the spawned process tree.
@@ -94,7 +107,14 @@ The regression selection passed 305 tests and 29 subtests, with two skips and th
 known headless color-initialization test deselected. The final focused steering
 and terminal selection passed 22 tests. These selections overlap.
 
-A separate existing `test_run_cmd_echo` fails under Windows PowerShell because
-unquoted `echo Hello, World!` prints two entries. The same failure was reproduced
-against the unchanged runner from commit `1672df7`; the new terminal action uses
-explicit shell semantics and its own verified execution path.
+The Windows shell regression fixes the previously documented `test_run_cmd_echo`
+failure. The legacy runner was wrapping CMD commands in an unquoted PowerShell
+`-Command` call based on the parent terminal. The reproduction split the quoted
+export preset into `Windows` and `Desktop` and rejected CMD's `if not exist`.
+Tests now cover the original two-step export shape, native argument preservation,
+GUI process ordering/exit status, failure propagation and return to the agent.
+The targeted Windows-shell/coder/command/navigation/steering regression selection
+passed 184 tests and 29 subtests, with two optional language-server skips. The
+export/launch checks use temporary stand-ins, including `pythonw.exe`, without
+building or launching the user's game. The quoted-preset test checks both CMD
+and the explicit PowerShell terminal action.
