@@ -31,6 +31,7 @@ from rich.console import Console
 from aider import __version__, models, prompts, urls, utils
 from aider.analytics import Analytics
 from aider.commands import Commands
+from aider.documents import is_docx
 from aider.chatgpt_errors import ChatGPTError
 from aider.exceptions import LiteLLMExceptions
 from aider.history import ChatSummary
@@ -473,6 +474,9 @@ class Coder:
                 continue
 
             if not fname.exists():
+                if is_docx(fname):
+                    self.io.tool_error(f"DOCX reference does not exist: {fname}")
+                    continue
                 if utils.touch_file(fname):
                     self.io.tool_output(f"Creating empty file {fname}")
                 else:
@@ -499,6 +503,12 @@ class Coder:
                     self.abs_read_only_fnames.add(abs_fname)
                 else:
                     self.io.tool_warning(f"Error: Read-only file {fname} does not exist. Skipping.")
+
+        for fname in list(self.abs_fnames):
+            if is_docx(fname):
+                self.abs_fnames.discard(fname)
+                if self.io.read_text(fname) is not None:
+                    self.abs_read_only_fnames.add(fname)
 
         if map_tokens is None:
             use_repo_map = main_model.use_repo_map
@@ -595,6 +605,10 @@ class Coder:
 
     def add_rel_fname(self, rel_fname):
         path = self.abs_root_path(rel_fname)
+        if is_docx(path):
+            if self.io.read_text(path) is not None:
+                self.abs_read_only_fnames.add(path)
+            return
         self.abs_fnames.add(path)
         if self.context_pager is not None:
             if path in self.l2_interface_fnames:
@@ -974,7 +988,14 @@ class Coder:
         if self.commands.is_command(inp):
             return self.commands.run(inp)
 
-        self.check_for_file_mentions(inp)
+        if self.agent_navigator is not None:
+            notice = self.agent_navigator.load_mentioned_documents(inp)
+            if notice:
+                inp += "\n\nLocal document lookup:\n" + notice
+        if self.agent_navigator is not None and ".docx" in inp.lower():
+            self.check_for_file_mentions(inp, include_docx=False)
+        else:
+            self.check_for_file_mentions(inp)
         inp = self.check_for_urls(inp)
 
         return inp
@@ -1883,8 +1904,10 @@ class Coder:
 
         return mentioned_rel_fnames
 
-    def check_for_file_mentions(self, content):
+    def check_for_file_mentions(self, content, include_docx=True):
         mentioned_rel_fnames = self.get_file_mentions(content)
+        if not include_docx:
+            mentioned_rel_fnames = {name for name in mentioned_rel_fnames if not is_docx(name)}
 
         new_mentions = mentioned_rel_fnames - self.ignore_mentions
 
@@ -2339,6 +2362,11 @@ class Coder:
 
     def allowed_to_edit(self, path):
         full_path = self.abs_root_path(path)
+        if is_docx(full_path):
+            self.io.tool_error(
+                "DOCX references are read-only; create a separate plan or text file."
+            )
+            return False
         if self.repo:
             need_to_add = not self.repo.path_in_repo(path)
         else:

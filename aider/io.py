@@ -34,6 +34,7 @@ from rich.style import Style as RichStyle
 from rich.text import Text
 
 from aider.mdstream import MarkdownStream
+from aider.documents import DocumentReadError, is_docx, read_docx
 
 from .dump import dump  # noqa: F401
 from .editor import pipe_editor
@@ -460,6 +461,13 @@ class InputOutput:
             return
 
     def read_text(self, filename, silent=False):
+        if is_docx(filename):
+            try:
+                return read_docx(filename)
+            except (OSError, DocumentReadError) as err:
+                if not silent:
+                    self.tool_error(f"{filename}: {err}")
+                return None
         if is_image_file(filename):
             return self.read_image(filename)
 
@@ -493,6 +501,10 @@ class InputOutput:
         :param max_retries: Maximum number of retries if a file lock is encountered.
         :param initial_delay: Initial delay (in seconds) before the first retry.
         """
+        if is_docx(filename):
+            raise PermissionError(
+                "DOCX files are read-only references; write a separate text file."
+            )
         if self.dry_run:
             return
 

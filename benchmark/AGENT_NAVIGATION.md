@@ -26,8 +26,11 @@ must generate a separate edit response against the newly loaded source.
 | `/nav_refs symbol_or_file:line[:column]` | Return a compact list of repository references, without loading every referenced file. |
 | `/page_l1 filepath [start_line] [end_line]` | Load a complete editable file. Optional lines are location hints. |
 | `/demote_l2 filepath` | Replace an eligible L1 file with its complete read-only interface summary. |
+| `/list_files [glob]` | List workspace filenames, including non-ignored untracked references. |
+| `/read_file filepath` | Read reference text; DOCX text/tables are extracted and remain read-only. |
 
-The terminal also accepts `/nav-def`, `/nav-refs`, `/page-l1`, and `/demote-l2`;
+The terminal also accepts `/nav-def`, `/nav-refs`, `/page-l1`, `/demote-l2`,
+`/list-files` and `/read-file`;
 the underscore spellings work as aliases. User commands print their results
 without making a model request.
 
@@ -45,7 +48,10 @@ syntax fallback: Python AST, or RepoMap's Tree-sitter queries for other supporte
 languages. Fallback results are explicitly labeled as name matches, rather than
 proof of semantic identity. A partial index cannot establish a unique definition.
 
-Autonomous reads are limited to tracked or already loaded repository files.
+Autonomous source reads are limited to tracked or already loaded repository files.
+Untracked DOCX documents can be loaded as read-only references. Explicit user
+mentions discover unique local DOCX names before the next request; see
+[local documents](LOCAL_DOCUMENTS.md) for extraction fidelity and limits.
 Ignored files, repository metadata, paths outside the root, symlink escapes, and
 previously declined file loads are rejected. An explicit user command can load
 an existing untracked file inside the root. Explicitly read-only files remain

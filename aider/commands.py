@@ -279,8 +279,9 @@ class Commands:
             if not attr.startswith("cmd_"):
                 continue
             cmd = attr[4:]
-            if cmd in {"nav_def", "nav_refs", "page_l1", "demote_l2"} and not getattr(
-                self.coder, "agent_navigator", None
+            if (
+                cmd in {"nav_def", "nav_refs", "page_l1", "demote_l2", "list_files", "read_file"}
+                and not getattr(self.coder, "agent_navigator", None)
             ):
                 continue
             cmd = cmd.replace("_", "-")
@@ -308,7 +309,7 @@ class Commands:
 
         first_word = words[0]
         if getattr(self.coder, "agent_navigator", None) and first_word in {
-            "/nav_def", "/nav_refs", "/page_l1", "/demote_l2"
+            "/nav_def", "/nav_refs", "/page_l1", "/demote_l2", "/list_files", "/read_file"
         }:
             first_word = first_word.replace("_", "-")
         rest_inp = inp[len(words[0]) :].strip()
@@ -368,6 +369,14 @@ class Commands:
     def cmd_page_l1(self, args):
         "Load a complete file into working context; optional lines are hints"
         self._navigation_command("page_l1", args)
+
+    def cmd_list_files(self, args):
+        "List workspace files, including untracked files; optional relative glob"
+        self._navigation_command("list_files", args)
+
+    def cmd_read_file(self, args):
+        "Load a workspace file as read-only reference text; supports DOCX"
+        self._navigation_command("read_file", args)
 
     def cmd_demote_l2(self, args):
         "Replace an eligible working file with its read-only interface"
@@ -871,6 +880,11 @@ class Commands:
 
         filenames = parse_quoted_filenames(args)
         for word in filenames:
+            from aider.documents import is_docx
+
+            if is_docx(word):
+                self.cmd_read_only(self.quote_fname(word))
+                continue
             if Path(word).is_absolute():
                 fname = Path(word)
             else:
@@ -1455,6 +1469,10 @@ class Commands:
                 self.io.tool_error(f"Not a file or directory: {abs_path}")
 
     def _add_read_only_file(self, abs_path, original_name):
+        from aider.documents import is_docx
+
+        if is_docx(abs_path) and self.io.read_text(abs_path) is None:
+            return
         if is_image_file(original_name) and not self.coder.main_model.info.get("supports_vision"):
             self.io.tool_error(
                 f"Cannot add image file {original_name} as the"

@@ -10,6 +10,7 @@ from rich.table import Table
 from rich.text import Text
 
 from aider.utils import is_image_file
+from aider.documents import is_docx, read_docx
 
 
 def clean(value):
@@ -85,8 +86,11 @@ def context_status(coder):
                     text = pager.render_l2_stub(path, source) if source is not None else None
                     note = "interface; implementation omitted"
                 else:
-                    text = Path(path).read_text(encoding=coder.io.encoding)
-                    if pager:
+                    text = (read_docx(path) if is_docx(path)
+                            else Path(path).read_text(encoding=coder.io.encoding))
+                    if is_docx(path):
+                        note = "read-only DOCX text; images/layout excluded"
+                    elif pager and level == "L1":
                         note = pager.file_status(path)
                 count = coder.main_model.token_count(text) if text is not None else None
                 if not isinstance(count, int) or isinstance(count, bool):
@@ -116,7 +120,10 @@ def toolbar(status, width=100):
     model = status["model"].split("/")[-1]
     branch = Text(status["branch"])
     branch.truncate(max(8, min(24, width // 4)), overflow="ellipsis")
-    items = [model, branch.plain, f"L1 {status['l1_files']} / L2 {status['l2_files']}"]
+    context = f"L1 {status['l1_files']} / L2 {status['l2_files']}"
+    if status["read_only_files"]:
+        context += f" / RO {status['read_only_files']}"
+    items = [model, branch.plain, context]
     if width >= 130:
         items.append(f"LSP {status['lsp']['bridge_stats'].get('queries', 0)} RPC")
         nav = status["navigation"]
@@ -180,7 +187,7 @@ def show_context(io, coder, as_json=False):
     activity = [
         f"Paging {status['paging']}{policy}: "
         f"{status['pager_stats'].get('demotions', 0)} demotions, "
-        f"{status['pager_stats'].get('full_file_reloads', 0)} navigation loads/L2 reloads. "
+        f"{status['pager_stats'].get('full_file_reloads', 0)} navigation L1 loads/L2 reloads. "
         f"L2 in {status['pager_stats'].get('completed_requests_with_l2', 0)}/"
         f"{status['pager_stats'].get('completed_model_requests', 0)} completed requests.",
         f"LSP ranking {'on' if lsp['ranking_enabled'] else 'off'} · "

@@ -2,6 +2,9 @@
 
 import ast
 import hashlib
+import fnmatch
+import os
+import subprocess
 import re
 import shlex
 import time
@@ -11,8 +14,9 @@ from pathlib import Path
 from urllib.parse import unquote, urlparse
 
 from aider.lsp_bridge import LSPBridge, locations as normalize_locations
+from aider.documents import is_docx
 
-ACTIONS = {"nav_def", "nav_refs", "page_l1", "demote_l2"}
+ACTIONS = {"nav_def", "nav_refs", "page_l1", "demote_l2", "list_files", "read_file"}
 INSTRUCTIONS = """
 You can navigate repository files before editing. Send a separate response containing
 one fenced `aider-nav` block with up to three actions, one per line:
@@ -21,8 +25,17 @@ one fenced `aider-nav` block with up to three actions, one per line:
 /nav_refs symbol_or_file:line[:column]
 /page_l1 "path/to/file" [start_line] [end_line]
 /demote_l2 "path/to/file"
+/list_files "*.docx"
+/read_file "path/to/design.docx"
 ```
 Use only the actions you need. Edit directly when current files are sufficient.
+When asked about a local document, discover it with /list_files and load it with
+/read_file before asking the user to paste or upload it. Listing includes local
+untracked files. /read_file loads reference text read-only, including DOCX text
+and tables; embedded images and layout are not included. It does not grant edit
+permission. Untracked DOCX references can be read directly; untracked source
+files still require an explicit user load. Ignored, declined and outside-workspace
+paths remain inaccessible.
 Definition lookup loads the complete target file.
 Page line numbers are location hints; whole files are loaded, without truncation.
 Reference results say whether they are semantic or syntactic. Ambiguous symbols
@@ -61,9 +74,10 @@ def parse_actions(content):
                     raise NavigationError(str(err)) from err
                 name = parts[0].lstrip("/").replace("-", "_") if parts else ""
                 if not parts or not parts[0].startswith("/") or name not in ACTIONS:
-                    raise NavigationError("Only the four navigation actions are allowed.")
+                    raise NavigationError("Only supported navigation actions are allowed.")
                 args = parts[1:]
-                if (name in {"nav_def", "nav_refs", "demote_l2"} and len(args) != 1) or (
+                if (name in {"nav_def", "nav_refs", "demote_l2", "read_file"}
+                    and len(args) != 1) or (name == "list_files" and len(args) > 1) or (
                     name == "page_l1" and not 1 <= len(args) <= 3
                 ):
                     raise NavigationError(f"Invalid arguments for /{name}.")
@@ -135,7 +149,7 @@ class AgentNavigator:
         if self.owned_map is not None:
             self.owned_map.close()
 
-    def _path(self, name, manual=False):
+    def _path(self, name, manual=False, read_only=False):
         path = (self.root / name).resolve()
         try:
             relative = path.relative_to(self.root)
@@ -148,7 +162,7 @@ class AgentNavigator:
             raise NavigationError("The requested path is ignored.")
         allowed = self._allowed()
         if not manual:
-            if path not in allowed:
+            if path not in allowed and not (read_only and is_docx(path)):
                 raise NavigationError(
                     "The path is not a tracked or already loaded repository file."
                 )
@@ -163,12 +177,110 @@ class AgentNavigator:
         return Path(path).relative_to(self.root).as_posix()
 
     def _page(self, path, hints=()):
+        if is_docx(path):
+            return self._read_reference(path)
         if path in self.coder.abs_read_only_fnames:
             raise NavigationError("This file was explicitly added as read-only.")
         self.coder.context_pager.promote_file(self.coder, path)
         self._allowed()[Path(path)] = path
         suffix = f" Line hints: {'-'.join(hints)}." if hints else ""
         return f'Loaded complete file "{self._name(path)}" into L1.{suffix}'
+
+    def _read_reference(self, path):
+        content = self.coder.io.read_text(path)
+        if content is None:
+            raise NavigationError("The file has no readable text; nothing was added.")
+        if path in self.coder.abs_fnames and not is_docx(path):
+            return f'"{self._name(path)}" is already loaded in L1.'
+        self.coder.abs_fnames.discard(path)
+        self.coder.l2_interface_fnames.discard(path)
+        self.coder.abs_read_only_fnames.add(path)
+        self._allowed()[Path(path)] = path
+        return f'Loaded "{self._name(path)}" as read-only reference text.'
+
+    def workspace_files(self, pattern="*", deadline=None):
+        """List metadata within the workspace without adding source to context."""
+        if Path(pattern).is_absolute() or ".." in Path(pattern).parts or pattern.startswith(":"):
+            raise NavigationError("Use a workspace-relative glob.")
+        deadline = deadline or time.monotonic() + self.timeout
+        if self.coder.repo:
+            try:
+                git_pattern = f":(icase){pattern}" if os.name == "nt" else pattern
+                result = subprocess.run(
+                    ["git", "ls-files", "--cached", "--others", "--exclude-standard",
+                     "-z", "--", git_pattern], cwd=self.root, check=True,
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                    timeout=max(.1, deadline - time.monotonic()),
+                    creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
+                )
+                names = result.stdout.decode("utf-8", "surrogateescape").split("\0")
+            except (OSError, subprocess.SubprocessError) as err:
+                raise NavigationError("Unable to list workspace files with Git.") from err
+        else:
+            def walk():
+                for folder, dirs, files in os.walk(self.root, followlinks=False):
+                    dirs[:] = sorted(d for d in dirs if d not in
+                                     {".git", ".venv", "node_modules", "__pycache__"})
+                    for name in sorted(files):
+                        yield str((Path(folder) / name).relative_to(self.root))
+            names = walk()
+        found = set()
+        for index, name in enumerate(names):
+            if time.monotonic() >= deadline or index >= 20000:
+                return sorted(found), False
+            path = (self.root / name).resolve()
+            if not path.is_relative_to(self.root) or not path.is_file():
+                continue
+            relative = path.relative_to(self.root).as_posix()
+            if ".git" in Path(relative).parts:
+                continue
+            if self.coder.repo and self.coder.repo.ignored_file(path):
+                continue
+            if fnmatch.fnmatch(relative, pattern) or fnmatch.fnmatch(path.name, pattern):
+                found.add(relative)
+        return sorted(found), True
+
+    def load_mentioned_documents(self, content):
+        """An explicit user filename authorizes reading a unique local DOCX reference."""
+        if ".docx" not in content.lower():
+            return None
+        if re.search(r"\b(don['’]t|do\s+not|never|avoid|exclude|skip)\b", content, re.I):
+            # Let the assistant interpret restrictive instructions before any automatic read.
+            return None
+        try:
+            files, complete = self.workspace_files("*.[dD][oO][cC][xX]")
+        except NavigationError as err:
+            return str(err)
+        if not complete:
+            return "Local document search incomplete; use /read-file with its relative path."
+        aliases = {}
+        for name in files:
+            for alias in {name, Path(name).name}:
+                aliases.setdefault(alias.casefold(), set()).add(name)
+        messages = []
+        normalized = content.replace("\\", "/")
+        selected = set()
+        for alias, matches in aliases.items():
+            if not re.search(r"(?<![\w/.-])" + re.escape(alias) + r"(?![\w/-])",
+                             normalized, re.I):
+                continue
+            if len(matches) != 1:
+                messages.append("Ambiguous local document name; use a relative path: "
+                                + ", ".join(sorted(matches)))
+            else:
+                selected.update(matches)
+        self.allowed = None
+        for name in sorted(selected):
+            try:
+                path = self._path(name, read_only=True)
+                if path in self.coder.abs_read_only_fnames:
+                    continue
+                message = self._read_reference(path)
+                messages.append(message)
+                self.coder.io.tool_output(message)
+            except (NavigationError, OSError, ValueError) as err:
+                messages.append(f"Local document not loaded: {err}")
+        return "\n".join(messages) or None
 
     def _inventory(self):
         from grep_ast import filename_to_lang
@@ -467,7 +579,16 @@ class AgentNavigator:
             try:
                 if action not in ACTIONS:
                     raise NavigationError("Unknown navigation action.")
-                if action == "page_l1":
+                if action == "list_files":
+                    files, complete = self.workspace_files(args[0] if args else "*", deadline)
+                    message = "\n".join(files[:80]) or "No matching workspace files."
+                    if not complete or len(files) > 80:
+                        message += "\nListing limited; refine the glob to see other files."
+                    if not files:
+                        status = "empty"
+                elif action == "read_file":
+                    message = self._read_reference(self._path(args[0], manual, read_only=True))
+                elif action == "page_l1":
                     message = self._page(self._path(args[0], manual), args[1:])
                 elif action == "demote_l2":
                     path = self._path(args[0], manual)
