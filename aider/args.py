@@ -813,8 +813,14 @@ def get_parser(default_config_files, git_root):
     group.add_argument(
         "--yes-always",
         action="store_true",
-        help="Always say yes to every confirmation",
+        help="Approve routine confirmations; shell execution still requires explicit approval",
         default=None,
+    )
+    group.add_argument(
+        "--yolo",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="Approve all confirmations, including shell execution; use defaults for questions",
     )
     group.add_argument(
         "-v",

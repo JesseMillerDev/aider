@@ -1,13 +1,16 @@
 import base64
 import functools
 import os
+import queue
 import re
 import shutil
 import signal
 import subprocess
+import sys
 import time
 import webbrowser
 from collections import defaultdict
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime
 from io import StringIO
@@ -36,6 +39,7 @@ from rich.text import Text
 
 from aider.mdstream import MarkdownStream
 from aider.documents import DocumentReadError, is_docx, read_docx
+from aider.steering import SteeringInput, suspend_steering, take_queued_input
 
 from .dump import dump  # noqa: F401
 from .editor import pipe_editor
@@ -290,9 +294,13 @@ class InputOutput:
         notifications=False,
         notifications_command=None,
         terminal_ui="compact",
+        yolo=False,
     ):
         self.placeholder = None
         self.terminal_ui = terminal_ui
+        self.yolo = yolo
+        self.steering = None
+        self.queued_inputs = queue.Queue()
         self.session_status = None
         self._assistant_heading_shown = False
         self.interrupted = False
@@ -860,6 +868,7 @@ class InputOutput:
         return False
 
     @restore_multiline
+    @suspend_steering
     def confirm_ask(
         self,
         question,
@@ -876,7 +885,7 @@ class InputOutput:
 
         question_id = (question, subject)
 
-        if question_id in self.never_prompts:
+        if question_id in self.never_prompts and not self.yolo:
             return False
 
         if group and not group.show_group:
@@ -919,7 +928,10 @@ class InputOutput:
                 return True
             return text.lower() in valid_responses
 
-        if self.yes is True:
+        if self.yolo:
+            res = "y"
+            self.tool_output(f"YOLO: {question}yes")
+        elif self.yes is True:
             res = "n" if explicit_yes_required else "y"
         elif self.yes is False:
             res = "n"
@@ -981,6 +993,7 @@ class InputOutput:
         return is_yes
 
     @restore_multiline
+    @suspend_steering
     def prompt_ask(self, question, default="", subject=None):
         self.num_user_asks += 1
 
@@ -993,7 +1006,9 @@ class InputOutput:
 
         style = self._get_style()
 
-        if self.yes is True:
+        if self.yolo:
+            res = default
+        elif self.yes is True:
             res = "yes"
         elif self.yes is False:
             res = "no"
@@ -1014,7 +1029,7 @@ class InputOutput:
 
         hist = f"{question.strip()} {res.strip()}"
         self.append_chat_history(hist, linebreak=True, blockquote=True)
-        if self.yes in (True, False):
+        if self.yolo or self.yes in (True, False):
             self.tool_output(hist)
 
         return res
@@ -1074,8 +1089,39 @@ class InputOutput:
             code_theme=self.code_theme,
             inline_code_lexer="text",
         )
+        if self.steering is not None:
+            from aider.steering import ParagraphStream
+
+            return ParagraphStream(self.console, mdargs)
         mdStream = MarkdownStream(mdargs=mdargs)
         return mdStream
+
+    @contextmanager
+    def working_input(self, coder):
+        if (self.steering is not None or not self.prompt_session or self.is_dumb_terminal
+                or self.input is not None or self.output is not None
+                or not sys.stdin.isatty() or not sys.stdout.isatty()):
+            yield
+            return
+        completer = AutoCompleter(
+            coder.root, coder.get_inchat_relative_files(), coder.get_addable_relative_files(),
+            coder.commands, self.encoding, abs_read_only_fnames=coder.abs_read_only_fnames,
+            file_reference_files=(coder.agent_navigator.workspace_files
+                                  if coder.agent_navigator is not None else None),
+        )
+        controller = SteeringInput(self, completer)
+        try:
+            with controller:
+                self.steering = controller
+                yield
+        finally:
+            self.steering = None
+            if controller.draft:
+                self.placeholder = ((self.placeholder + "\n") if self.placeholder else "")
+                self.placeholder += controller.draft
+
+    def take_queued_input(self):
+        return take_queued_input(self)
 
     def assistant_output(self, message, pretty=None):
         if not message:

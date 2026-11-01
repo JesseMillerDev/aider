@@ -16,7 +16,7 @@ from urllib.parse import unquote, urlparse
 from aider.lsp_bridge import LSPBridge, locations as normalize_locations
 from aider.documents import is_docx
 
-ACTIONS = {"nav_def", "nav_refs", "page_l1", "demote_l2", "list_files", "read_file"}
+ACTIONS = {"nav_def", "nav_refs", "page_l1", "demote_l2", "list_files", "read_file", "run_command"}
 FILE_MENTION = re.compile(
     r'''(?<![\w@/\\])@(?:"([^"\r\n]+)"|'([^'\r\n]+)'|([^\s"'`<>(),;!?]+))'''
 )
@@ -42,6 +42,7 @@ one fenced `aider-nav` block with up to three actions, one per line:
 /demote_l2 "path/to/file"
 /list_files "*.docx"
 /read_file "path/to/design.docx"
+/run_command git status --short
 ```
 Use only the actions you need. Edit directly when current files are sufficient.
 When asked about a local document, discover it with /list_files and load it with
@@ -51,6 +52,19 @@ and tables; embedded images and layout are not included. It does not grant edit
 permission. Untracked DOCX references can be read directly; untracked source
 files still require an explicit user load. Ignored, declined and outside-workspace
 paths remain inaccessible.
+You have terminal access via /run_command. Use it to inspect installed tools, run
+tests, and perform requested terminal work instead of claiming you cannot do so.
+The rest of that action's line is a literal shell command, including quotes and
+backslashes. Commands run in the workspace root and return output and exit status.
+Windows uses PowerShell; other platforms use their configured shell. To open a
+requested Windows project/application, use Start-Process and verify the result.
+Discover executable locations with the terminal before asking the user for paths.
+Background helpers use -WindowStyle Hidden unless the user needs a visible app.
+Commands require confirmation unless YOLO is enabled. The default timeout is 120s;
+prefix the command with --timeout=SECONDS to allow up to 3600s. Terminal output
+may be shortened with an explicit notice. These are real local commands; installed
+programs on PATH are available, but tools/MCP servers from other agents are not
+automatically connected. Send this action separately from any proposed edits.
 Definition lookup loads the complete target file.
 Page line numbers are location hints; whole files are loaded, without truncation.
 Reference results say whether they are semantic or syntactic. Ambiguous symbols
@@ -84,14 +98,16 @@ def parse_actions(content):
                 if not line.strip():
                     continue
                 try:
-                    parts = shlex.split(line.strip().replace("\\", "/"))
+                    terminal = re.fullmatch(r"/run[-_]command\s+(.+)", line.strip())
+                    parts = (["/run_command", terminal[1]] if terminal
+                             else shlex.split(line.strip().replace("\\", "/")))
                 except ValueError as err:
                     raise NavigationError(str(err)) from err
                 name = parts[0].lstrip("/").replace("-", "_") if parts else ""
                 if not parts or not parts[0].startswith("/") or name not in ACTIONS:
                     raise NavigationError("Only supported navigation actions are allowed.")
                 args = parts[1:]
-                if (name in {"nav_def", "nav_refs", "demote_l2", "read_file"}
+                if (name in {"nav_def", "nav_refs", "demote_l2", "read_file", "run_command"}
                     and len(args) != 1) or (name == "list_files" and len(args) > 1) or (
                     name == "page_l1" and not 1 <= len(args) <= 3
                 ):
@@ -630,7 +646,13 @@ class AgentNavigator:
             try:
                 if action not in ACTIONS:
                     raise NavigationError("Unknown navigation action.")
-                if action == "list_files":
+                if action == "run_command":
+                    from aider.terminal_tools import run_terminal
+
+                    started = time.monotonic()
+                    message = run_terminal(self.coder, args[0])
+                    deadline += time.monotonic() - started
+                elif action == "list_files":
                     files, complete = self.workspace_files(args[0] if args else "*", deadline)
                     message = "\n".join(files[:80]) or "No matching workspace files."
                     if not complete or len(files) > 80:
@@ -670,5 +692,6 @@ class AgentNavigator:
             return None
         return (
             self.execute(actions) + "\n\nContinue using the current complete files. "
-            "No edits from the navigation response were applied."
+            "No proposed text edit blocks were applied. Terminal commands executed only "
+            "as reported above."
         )

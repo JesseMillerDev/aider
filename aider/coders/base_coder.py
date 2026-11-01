@@ -951,8 +951,12 @@ class Coder:
                 try:
                     if not self.io.placeholder:
                         self.copy_context()
-                    user_message = self.get_input()
-                    self.run_one(user_message, preproc)
+                    user_message = self.io.take_queued_input() or self.get_input()
+                    if self.commands.is_command(user_message or ""):
+                        self.run_one(user_message, preproc)
+                    else:
+                        with self.io.working_input(self):
+                            self.run_one(user_message, preproc)
                     self.show_undo_hint()
                 except KeyboardInterrupt:
                     self.keyboard_interrupt()
@@ -1022,7 +1026,24 @@ class Coder:
 
         while message:
             self.reflected_message = None
+            if self.io.steering is not None:
+                self.io.steering.resume()
             list(self.send_message(message))
+
+            if self.io.steering is not None:
+                self.io.steering.pause()
+            steering = []
+            while (queued := self.io.take_queued_input()) is not None:
+                prepared = self.preproc_user_input(queued) if preproc else queued
+                if prepared:
+                    steering.append(prepared)
+            if steering:
+                # Explicit user input starts a fresh reflection allowance.
+                self.num_reflections = 0
+                message = "\n\n".join(steering)
+                if self.reflected_message:
+                    message = self.reflected_message + "\n\nUser steering:\n" + message
+                continue
 
             if not self.reflected_message:
                 break
@@ -1323,6 +1344,11 @@ class Coder:
             from aider.agent_nav import INSTRUCTIONS
 
             main_sys += "\n" + INSTRUCTIONS
+            if self.io.yolo:
+                main_sys += (
+                    "\nYOLO mode is active: confirmation prompts are approved automatically. "
+                    "Use terminal actions to complete the user's requested work.\n"
+                )
         if self.main_model.system_prompt_prefix:
             main_sys = self.main_model.system_prompt_prefix + "\n" + main_sys
 
@@ -1550,6 +1576,12 @@ class Coder:
 
         chunks = self.format_messages()
         messages = chunks.all_messages()
+        if self.io.steering is not None and self.io.steering.pending:
+            self.io.steering.pause()
+            self.reflected_message = (
+                "Queued user steering arrived before the model request; no response was generated."
+            )
+            return
         if not self.check_tokens(messages):
             return
         self.warm_cache(chunks)
@@ -1559,8 +1591,9 @@ class Coder:
 
         self.multi_response_content = ""
         if self.show_pretty():
-            self.waiting_spinner = WaitingSpinner("Waiting for " + self.main_model.name)
-            self.waiting_spinner.start()
+            if self.io.steering is None:
+                self.waiting_spinner = WaitingSpinner("Waiting for " + self.main_model.name)
+                self.waiting_spinner.start()
             if self.stream:
                 self.mdstream = self.io.get_assistant_mdstream()
             else:
@@ -1665,6 +1698,18 @@ class Coder:
 
         self.add_assistant_reply_to_cur_messages()
         self._pager_response_completed = response_completed and not exhausted and not interrupted
+
+        if self.io.steering is not None:
+            self.io.steering.pause()
+            if self.io.steering.pending and response_completed:
+                self.reflected_message = (
+                    "User steering arrived before this response was applied. Its proposed edits "
+                    "and commands were not applied; reconsider them using the new instructions."
+                )
+                self.io.tool_output("Applying queued steering before proposed edits or commands.")
+                return
+            if not interrupted:
+                self.io.steering.resume()
 
         if exhausted:
             if self.cur_messages and self.cur_messages[-1]["role"] == "user":
@@ -2678,7 +2723,12 @@ class Coder:
             self.io.tool_output(f"Running {command}")
             # Add the command to input history
             self.io.add_to_input_history(f"/run {command.strip()}")
-            exit_status, output = run_cmd(command, error_print=self.io.tool_error, cwd=self.root)
+            options = {}
+            if self.io.steering is not None and self.io.steering.active:
+                options["interactive"] = False
+            exit_status, output = run_cmd(
+                command, error_print=self.io.tool_error, cwd=self.root, **options
+            )
             if output:
                 accumulated_output += f"Output from {command}\n{output}\n"
 

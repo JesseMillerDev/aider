@@ -41,6 +41,7 @@ def session_status(coder):
         "root": clean(coder.root),
         "branch": clean(branch),
         "edit_format": coder.edit_format,
+        "yolo": bool(getattr(coder.io, "yolo", False)),
         "l1_files": len(coder.abs_fnames),
         "l2_files": len(coder.l2_interface_fnames),
         "read_only_files": len(coder.abs_read_only_fnames),
@@ -123,7 +124,7 @@ def toolbar(status, width=100):
     context = f"L1 {status['l1_files']} / L2 {status['l2_files']}"
     if status["read_only_files"]:
         context += f" / RO {status['read_only_files']}"
-    items = [model, branch.plain, context]
+    items = (["YOLO"] if status.get("yolo") else []) + [model, branch.plain, context]
     if width >= 130:
         items.append(f"LSP {status['lsp']['bridge_stats'].get('queries', 0)} RPC")
         nav = status["navigation"]
@@ -141,6 +142,8 @@ def toolbar(status, width=100):
 def show_header(io, coder, announcements):
     status = session_status(coder)
     content = Text()
+    if status["yolo"]:
+        content.append("YOLO · confirmations approved automatically\n", style="bold yellow")
     model_line = next((line.split(": ", 1)[1] for line in announcements
                        if line.startswith(("Model: ", "Main model: "))), status["model"])
     content.append(clean(model_line) + "\n", style="bold")

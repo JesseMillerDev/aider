@@ -8,11 +8,14 @@ import pexpect
 import psutil
 
 
-def run_cmd(command, verbose=False, error_print=None, cwd=None):
+def run_cmd(command, verbose=False, error_print=None, cwd=None, interactive=True):
     try:
-        if sys.stdin.isatty() and hasattr(pexpect, "spawn") and platform.system() != "Windows":
+        if (interactive and sys.stdin.isatty() and hasattr(pexpect, "spawn")
+                and platform.system() != "Windows"):
             return run_cmd_pexpect(command, verbose, cwd)
 
+        if not interactive:
+            return run_cmd_subprocess(command, verbose, cwd, interactive=False)
         return run_cmd_subprocess(command, verbose, cwd)
     except OSError as e:
         error_message = f"Error occurred while running command '{command}': {str(e)}"
@@ -39,7 +42,8 @@ def get_windows_parent_process_name():
         return None
 
 
-def run_cmd_subprocess(command, verbose=False, cwd=None, encoding=sys.stdout.encoding):
+def run_cmd_subprocess(command, verbose=False, cwd=None, encoding=sys.stdout.encoding,
+                       interactive=True):
     if verbose:
         print("Using run_cmd_subprocess:", command)
 
@@ -59,6 +63,7 @@ def run_cmd_subprocess(command, verbose=False, cwd=None, encoding=sys.stdout.enc
             if platform.system() == "Windows":
                 print("Parent process:", parent_process)
 
+        input_options = {} if interactive else {"stdin": subprocess.DEVNULL}
         process = subprocess.Popen(
             command,
             stdout=subprocess.PIPE,
@@ -70,6 +75,7 @@ def run_cmd_subprocess(command, verbose=False, cwd=None, encoding=sys.stdout.enc
             bufsize=0,  # Set bufsize to 0 for unbuffered output
             universal_newlines=True,
             cwd=cwd,
+            **input_options,
         )
 
         output = []

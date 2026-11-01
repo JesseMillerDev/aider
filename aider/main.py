@@ -576,6 +576,7 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
             notifications=args.notifications,
             notifications_command=args.notifications_command,
             terminal_ui=args.terminal_ui,
+            yolo=args.yolo,
         )
 
     io = get_io(args.pretty)
@@ -586,6 +587,9 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
             raise err
         io = get_io(False)
         io.tool_warning("Terminal does not support pretty output (UnicodeDecodeError)")
+
+    if io.yolo and not io.compact_ui:
+        io.tool_output("YOLO mode: confirmations approved automatically.")
 
     # Process any environment variables set via --set-env
     if args.set_env:

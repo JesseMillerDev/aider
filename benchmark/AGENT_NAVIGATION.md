@@ -28,6 +28,7 @@ must generate a separate edit response against the newly loaded source.
 | `/demote_l2 filepath` | Replace an eligible L1 file with its complete read-only interface summary. |
 | `/list_files [glob]` | List workspace filenames, including non-ignored untracked references. |
 | `/read_file filepath` | Read reference text; DOCX text/tables are extracted and remain read-only. |
+| `/run_command shell command` | Execute a local terminal command and return output and exit code; requires explicit approval or YOLO. |
 
 The terminal also accepts `/nav-def`, `/nav-refs`, `/page-l1`, `/demote-l2`,
 `/list-files` and `/read-file`;
@@ -60,7 +61,10 @@ mentions discover unique local DOCX names before the next request; see
 Ignored files, repository metadata, paths outside the root, symlink escapes, and
 previously declined file loads are rejected. An explicit user command can load
 an existing untracked file inside the root. Explicitly read-only files remain
-read-only. No action dispatches shell commands.
+read-only. `/run_command` is a separate terminal capability with explicit command
+approval (or YOLO); shell execution can access installed programs and is not
+restricted to navigation's file inventory. See [interactive CLI](INTERACTIVE_CLI.md)
+for steering input, timeout and output handling.
 
 ## Interaction with paging
 

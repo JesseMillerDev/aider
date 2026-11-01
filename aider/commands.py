@@ -1101,8 +1101,12 @@ class Commands:
 
     def cmd_run(self, args, add_on_nonzero_exit=False):
         "Run a shell command and optionally add the output to the chat (alias: !)"
+        options = {}
+        if self.io.steering is not None and self.io.steering.active:
+            options["interactive"] = False
         exit_status, combined_output = run_cmd(
-            args, verbose=self.verbose, error_print=self.io.tool_error, cwd=self.coder.root
+            args, verbose=self.verbose, error_print=self.io.tool_error, cwd=self.coder.root,
+            **options,
         )
 
         if add_on_nonzero_exit and getattr(self.coder, "context_pager", None) is not None:
