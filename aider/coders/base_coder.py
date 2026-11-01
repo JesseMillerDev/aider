@@ -972,6 +972,9 @@ class Coder:
         read_only_files = [self.get_rel_fname(fname) for fname in self.abs_read_only_fnames]
         all_files = sorted(set(inchat_files + read_only_files))
         edit_format = "" if self.edit_format == self.main_model.edit_format else self.edit_format
+        reference_options = {}
+        if self.agent_navigator is not None:
+            reference_options["file_reference_files"] = self.agent_navigator.workspace_files
         return self.io.get_input(
             self.root,
             all_files,
@@ -979,6 +982,7 @@ class Coder:
             self.commands,
             self.abs_read_only_fnames,
             edit_format=edit_format,
+            **reference_options,
         )
 
     def preproc_user_input(self, inp):
@@ -988,14 +992,22 @@ class Coder:
         if self.commands.is_command(inp):
             return self.commands.run(inp)
 
+        mention_content = inp
         if self.agent_navigator is not None:
-            notice = self.agent_navigator.load_mentioned_documents(inp)
+            from aider.agent_nav import file_mentions
+
+            # Explicit references must not fall back to a guessed ordinary file mention.
+            for _, start, end in reversed(file_mentions(inp)):
+                mention_content = mention_content[:start] + " " + mention_content[end:]
+            notices = [self.agent_navigator.load_file_mentions(inp),
+                       self.agent_navigator.load_mentioned_documents(mention_content)]
+            notice = "\n".join(value for value in notices if value)
             if notice:
-                inp += "\n\nLocal document lookup:\n" + notice
-        if self.agent_navigator is not None and ".docx" in inp.lower():
-            self.check_for_file_mentions(inp, include_docx=False)
+                inp += "\n\nLocal file lookup:\n" + notice
+        if self.agent_navigator is not None and ".docx" in mention_content.lower():
+            self.check_for_file_mentions(mention_content, include_docx=False)
         else:
-            self.check_for_file_mentions(inp)
+            self.check_for_file_mentions(mention_content)
         inp = self.check_for_urls(inp)
 
         return inp

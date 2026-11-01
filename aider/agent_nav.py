@@ -17,6 +17,21 @@ from aider.lsp_bridge import LSPBridge, locations as normalize_locations
 from aider.documents import is_docx
 
 ACTIONS = {"nav_def", "nav_refs", "page_l1", "demote_l2", "list_files", "read_file"}
+FILE_MENTION = re.compile(
+    r'''(?<![\w@/\\])@(?:"([^"\r\n]+)"|'([^'\r\n]+)'|([^\s"'`<>(),;!?]+))'''
+)
+RESTRICTIVE_REFERENCE = re.compile(r"\b(don['’]t|do\s+not|never|avoid|exclude|skip)\b", re.I)
+
+
+def file_mentions(content):
+    """Return explicit user references and their spans, excluding email addresses."""
+    return [
+        (next(value for value in match.groups() if value is not None).rstrip(".:"),
+         match.start(), match.end())
+        for match in FILE_MENTION.finditer(content)
+    ]
+
+
 INSTRUCTIONS = """
 You can navigate repository files before editing. Send a separate response containing
 one fenced `aider-nav` block with up to three actions, one per line:
@@ -244,7 +259,7 @@ class AgentNavigator:
         """An explicit user filename authorizes reading a unique local DOCX reference."""
         if ".docx" not in content.lower():
             return None
-        if re.search(r"\b(don['’]t|do\s+not|never|avoid|exclude|skip)\b", content, re.I):
+        if RESTRICTIVE_REFERENCE.search(content):
             # Let the assistant interpret restrictive instructions before any automatic read.
             return None
         try:
@@ -261,7 +276,7 @@ class AgentNavigator:
         normalized = content.replace("\\", "/")
         selected = set()
         for alias, matches in aliases.items():
-            if not re.search(r"(?<![\w/.-])" + re.escape(alias) + r"(?![\w/-])",
+            if not re.search(r"(?<![\w@/.-])" + re.escape(alias) + r"(?![\w/-])",
                              normalized, re.I):
                 continue
             if len(matches) != 1:
@@ -280,6 +295,42 @@ class AgentNavigator:
                 self.coder.io.tool_output(message)
             except (NavigationError, OSError, ValueError) as err:
                 messages.append(f"Local document not loaded: {err}")
+        return "\n".join(messages) or None
+
+    def load_file_mentions(self, content):
+        """A user @reference explicitly loads a local file as read-only context."""
+        mentions = file_mentions(content)
+        if not mentions or RESTRICTIVE_REFERENCE.search(content):
+            return None
+        try:
+            files, complete = self.workspace_files()
+        except NavigationError as err:
+            return str(err)
+        aliases = {}
+        for name in files:
+            for alias in {name, Path(name).name}:
+                aliases.setdefault(alias.casefold(), set()).add(name)
+        messages = []
+        self.allowed = None
+        for name in dict.fromkeys(name for name, _, _ in mentions):
+            matches = aliases.get(name.replace("\\", "/").casefold(), set())
+            if not complete:
+                messages.append(f"Search incomplete for @{name}; use /read-file with its path.")
+            elif not matches:
+                messages.append(f"No matching workspace file for @{name}; nothing was loaded.")
+            elif len(matches) > 1:
+                messages.append(f"Ambiguous @{name}; use a relative path: "
+                                + ", ".join(sorted(matches)))
+            else:
+                try:
+                    path = self._path(next(iter(matches)), manual=True, read_only=True)
+                    if path in self.coder.abs_read_only_fnames:
+                        continue
+                    message = self._read_reference(path)
+                    messages.append(message)
+                    self.coder.io.tool_output(message)
+                except (NavigationError, OSError, ValueError) as err:
+                    messages.append(f"Reference @{name} not loaded: {err}")
         return "\n".join(messages) or None
 
     def _inventory(self):

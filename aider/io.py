@@ -1,6 +1,7 @@
 import base64
 import functools
 import os
+import re
 import shutil
 import signal
 import subprocess
@@ -91,12 +92,15 @@ class ConfirmGroup:
 
 class AutoCompleter(Completer):
     def __init__(
-        self, root, rel_fnames, addable_rel_fnames, commands, encoding, abs_read_only_fnames=None
+        self, root, rel_fnames, addable_rel_fnames, commands, encoding, abs_read_only_fnames=None,
+        file_reference_files=None,
     ):
         self.addable_rel_fnames = addable_rel_fnames
         self.rel_fnames = rel_fnames
         self.encoding = encoding
         self.abs_read_only_fnames = abs_read_only_fnames or []
+        self.file_reference_files = file_reference_files
+        self.reference_names = None
 
         fname_to_rel_fnames = defaultdict(list)
         for rel_fname in addable_rel_fnames:
@@ -185,9 +189,30 @@ class AutoCompleter(Completer):
             yield Completion(candidate, start_position=-len(words[-1]))
 
     def get_completions(self, document, complete_event):
-        self.tokenize()
-
         text = document.text_before_cursor
+        reference = re.search(
+            r'''(?<![\w@/\\])@(?:"([^"\r\n]*)|'([^'\r\n]*)|([^\s"'`<>(),;!?]*))$''', text
+        )
+        if reference:
+            if self.reference_names is None:
+                names = set(self.addable_rel_fnames) | set(self.rel_fnames)
+                if self.file_reference_files is not None:
+                    try:
+                        found, _ = self.file_reference_files()
+                        names.update(found)
+                    except (OSError, ValueError):
+                        pass
+                self.reference_names = sorted(name.replace("\\", "/") for name in names)
+            partial = next(value for value in reference.groups() if value is not None)
+            partial = partial.replace("\\", "/").casefold()
+            for name in self.reference_names:
+                if (name.casefold().startswith(partial)
+                        or Path(name).name.casefold().startswith(partial)):
+                    quoted = '"' + name + '"' if re.search(r'''[\s"'`<>(),;!?]''', name) else name
+                    yield Completion("@" + quoted, start_position=-len(reference[0]), display=name)
+            return
+
+        self.tokenize()
         words = text.split()
         if not words:
             return
@@ -552,6 +577,7 @@ class InputOutput:
         commands,
         abs_read_only_fnames=None,
         edit_format=None,
+        file_reference_files=None,
     ):
         self.rule()
 
@@ -593,6 +619,7 @@ class InputOutput:
                 commands,
                 self.encoding,
                 abs_read_only_fnames=abs_read_only_fnames,
+                file_reference_files=file_reference_files,
             )
         )
 

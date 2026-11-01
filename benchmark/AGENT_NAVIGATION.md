@@ -34,6 +34,11 @@ The terminal also accepts `/nav-def`, `/nav-refs`, `/page-l1`, `/demote-l2`,
 the underscore spellings work as aliases. User commands print their results
 without making a model request.
 
+In ordinary messages, use `@file_name` or `@"docs/Game Design.docx"` to attach
+local reference text read-only before the request. Type `@` for filename tab
+completion. Unique basenames and relative paths work, including untracked files;
+already editable files stay editable. Missing or ambiguous names report an error.
+
 ## Lookup and scope
 
 File lines and columns are 1-based. Columns use UTF-16, matching LSP. A definition

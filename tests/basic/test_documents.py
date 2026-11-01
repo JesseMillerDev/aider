@@ -11,8 +11,11 @@ import pytest
 from aider.coders import Coder
 from aider.documents import DocumentReadError, read_docx
 from aider.io import InputOutput
+from aider.io import AutoCompleter
 from aider.models import Model
 from aider.terminal_ui import context_status, toolbar
+from prompt_toolkit.completion import CompleteEvent
+from prompt_toolkit.document import Document
 
 
 def document(path, body=None):
@@ -156,3 +159,77 @@ def test_add_and_positional_docx_are_read_only_and_writes_are_blocked(coder):
         other.repo.repo.close()
     coder.commands.cmd_add("missing.docx")
     assert not Path("missing.docx").exists()
+
+
+@pytest.mark.parametrize("reference", [
+    "@design.docx", "@docs/design.docx", '@"docs/Game Design.docx"',
+    "@'docs/Game Design.docx'", r"@docs\design.docx",
+])
+def test_at_reference_loads_document_before_request_without_confirmation(coder, reference):
+    name = "docs/Game Design.docx" if "Game Design" in reference else "docs/design.docx"
+    path = document(Path(coder.root) / name)
+    before = path.read_bytes()
+    with (patch.object(coder.io, "confirm_ask", side_effect=AssertionError("confirmation")),
+          patch.object(coder.main_model, "send_completion", side_effect=AssertionError("API"))):
+        result = coder.preproc_user_input(f"Read {reference} and plan the game.")
+    assert reference in result and "read-only reference" in result
+    assert coder.abs_read_only_fnames == {str(path)} and not coder.abs_fnames
+    assert "Build Bannerhold in Godot." in coder.get_read_only_files_content()
+    assert path.read_bytes() == before
+
+
+def test_at_reference_loads_multiple_untracked_text_files_and_preserves_editable_state(coder):
+    Path("README.md").write_text("Project goals.", encoding="utf-8")
+    Path("game.gd").write_text("extends Node\n", encoding="utf-8")
+    coder.preproc_user_input("Compare @README.md, with @game.gd.")
+    assert len(coder.abs_read_only_fnames) == 2 and not coder.abs_fnames
+    assert "Project goals." in coder.get_read_only_files_content()
+    coder.abs_read_only_fnames.remove(coder.abs_root_path("game.gd"))
+    coder.add_rel_fname("game.gd")
+    coder.preproc_user_input("Inspect @game.gd again")
+    assert coder.abs_root_path("game.gd") in coder.abs_fnames
+    assert coder.abs_root_path("game.gd") not in coder.abs_read_only_fnames
+
+
+def test_at_reference_reports_missing_or_ambiguous_paths_without_loading_or_prompting(coder):
+    document(Path(coder.root) / "first/design.docx")
+    selected = document(Path(coder.root) / "second/design.docx")
+    Path(".gitignore").write_text("secret.docx\n", encoding="utf-8")
+    document(Path(coder.root) / "secret.docx")
+    with patch.object(coder.io, "confirm_ask", side_effect=AssertionError("confirmation")):
+        result = coder.preproc_user_input(
+            "Read @design.docx and @missing.md plus @secret.docx and @../outside.docx"
+        )
+    assert "Ambiguous @design.docx" in result and "No matching" in result
+    assert not coder.abs_read_only_fnames and not coder.abs_fnames
+    coder.preproc_user_input("Read @second/design.docx")
+    assert coder.abs_read_only_fnames == {str(selected)}
+
+
+def test_at_reference_does_not_treat_email_or_negative_instruction_as_a_load(coder):
+    document(Path(coder.root) / "design.docx")
+    with patch.object(coder.io, "confirm_ask", side_effect=AssertionError("confirmation")):
+        coder.preproc_user_input("Contact user@design.docx for help.")
+        coder.preproc_user_input("Do not read @design.docx; explain the CLI.")
+    assert not coder.abs_read_only_fnames and not coder.abs_fnames
+
+
+@pytest.mark.parametrize("text,expected", [
+    ("Read @", '@"docs/Game Design.docx"'),
+    ("Read @Ga", '@"docs/Game Design.docx"'),
+    ('Read @"docs/Ga', '@"docs/Game Design.docx"'),
+    ("Read @docs\\Ga", '@"docs/Game Design.docx"'),
+    ("Read @read", "@README.md"),
+])
+def test_at_file_completion_lists_workspace_paths_and_quotes_spaces(coder, text, expected):
+    document(Path(coder.root) / "docs/Game Design.docx")
+    Path("README.md").write_text("Goals", encoding="utf-8")
+    completer = AutoCompleter(
+        coder.root, [], [], None, "utf-8",
+        file_reference_files=coder.agent_navigator.workspace_files,
+    )
+    completions = list(completer.get_completions(Document(text), CompleteEvent()))
+    match = next(item for item in completions if item.text == expected)
+    inserted = text[:len(text) + match.start_position] + match.text
+    coder.preproc_user_input(inserted)
+    assert len(coder.abs_read_only_fnames) == 1 and not coder.abs_fnames

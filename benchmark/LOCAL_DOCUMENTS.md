@@ -29,8 +29,23 @@ assistant can interpret the user's constraints first.
 For example, from the game repository:
 
 ```text
-Bannerhold_Dynasty_Game_Design.docx is the doc
+Read @Bannerhold_Dynasty_Game_Design.docx and help me plan the game.
 ```
+
+`@file_name` is the preferred explicit reference syntax. It also works for source
+and plain text files, including untracked files. A unique basename or a relative
+path resolves within the workspace. Use `@"docs/Game Design.docx"` for spaces;
+both Windows and forward-slash paths work. Multiple references can appear in one
+message. Type `@` and use tab completion to choose a workspace file.
+
+References load read-only without an extra confirmation prompt. Files already in
+editable context stay editable. Use `/add path` to make source files editable;
+DOCX references always remain read-only. Ambiguous or missing references report
+the problem instead of guessing. Email addresses are not references. Explicit
+user references allow loading untracked source files; the model's autonomous
+navigation still requires an explicit user load for those files.
+
+Bare DOCX filenames continue to work for compatibility.
 
 Or explicitly:
 
@@ -77,9 +92,10 @@ untracked discovery, explicit filename loading, ambiguous basenames, scoped read
 read-only command/constructor behavior and unchanged source bytes after blocked
 writes. No provider inference calls are needed.
 
-The final document/navigation/coder/command/status regression run passed 175 tests
-and 29 subtests, with two skips. An earlier main/benchmark integration selection
-passed 134 tests. Targeted lint and Git whitespace checks also passed.
+The `@` reference regression run covering documents, navigation, coder, commands,
+input and status passed 210 tests and 29 subtests, with two skips and the known
+headless color-initialization test deselected. An earlier main/benchmark integration
+selection passed 134 tests. Targeted lint and Git whitespace checks also passed.
 
 A read-only smoke check of the actual Bannerhold document loaded roughly 36,000
 characters into reference context with zero provider requests. Its SHA-256 and Git
