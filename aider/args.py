@@ -266,8 +266,8 @@ def get_parser(default_config_files, git_root):
     ##########
     group = parser.add_argument_group("Repomap settings")
     group.add_argument(
-        "--enable-lsp-graph", action=argparse.BooleanOptionalAction, default=False,
-        help="Use bounded language-server evidence to enrich repo-map edges (default: False)",
+        "--enable-lsp-graph", action=argparse.BooleanOptionalAction, default=True,
+        help="Use bounded language-server evidence to enrich repo-map edges (default: True)",
     )
     group.add_argument(
         "--lsp-timeout", type=positive_seconds, default=10.0, metavar="SECONDS",
@@ -298,12 +298,12 @@ def get_parser(default_config_files, git_root):
 
     group = parser.add_argument_group("Context paging settings")
     group.add_argument(
-        "--enable-l2-paging", action=argparse.BooleanOptionalAction, default=False,
-        help="Manage whole-file working context and read-only interface summaries (default: False)",
+        "--enable-l2-paging", action=argparse.BooleanOptionalAction, default=True,
+        help="Manage whole-file working context and read-only interface summaries (default: True)",
     )
     group.add_argument(
-        "--enable-agent-nav", action=argparse.BooleanOptionalAction, default=False,
-        help="Allow up to three explicit file navigation actions per response (default: False)",
+        "--enable-agent-nav", action=argparse.BooleanOptionalAction, default=True,
+        help="Allow up to three explicit file navigation actions per response (default: True)",
     )
     for flag, default, help_text in (
         ("--max-l1-tokens", None, "Optional working source-file token cap"),
@@ -311,8 +311,10 @@ def get_parser(default_config_files, git_root):
         ("--max-l2-tokens", None, "Optional read-only interface token cap"),
         ("--l1-ttl-turns", 2, "Idle completed responses before demoting a file"),
     ):
-        group.add_argument(flag, type=positive_integer, default=default,
-                           help=f"{help_text} (default: {'no cap' if default is None else default})")
+        group.add_argument(
+            flag, type=positive_integer, default=default,
+            help=f"{help_text} (default: {'no cap' if default is None else default})",
+        )
 
     ##########
     group = parser.add_argument_group("History Files")

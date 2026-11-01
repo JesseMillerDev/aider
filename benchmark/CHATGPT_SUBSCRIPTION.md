@@ -24,6 +24,19 @@ Sign-in is already completed on the development machine used for the initial ver
 The `login` command is for reconnecting or a new installation; ordinary Aider launches reuse
 the saved connection and refresh it as needed.
 
+Normal CLI launches enable agent navigation, LSP repository-map ranking and idle
+L1/L2 paging by default. LSP uses a 10-second budget; paging has no default file or
+token caps. Language servers must be available on PATH or beside the Python
+interpreter; unavailable servers retain syntax-based lookup/ranking. To disable
+the three features, add:
+
+```powershell
+--no-enable-agent-nav --no-enable-lsp-graph --no-enable-l2-paging
+```
+
+Programmatic constructors and pinned benchmark configurations keep their existing
+opt-in behavior; changing CLI defaults does not change recorded experiments.
+
 Optional reasoning effort:
 
 ```powershell

@@ -3,6 +3,11 @@
 Upstream: `Aider-AI/aider`, commit `5dc9490bb35f9729ef2c95d00a19ccd30c26339c`.
 Fork: <https://github.com/JesseMillerDev/aider>.
 
+Current CLI launches enable LSP ranking, agent navigation and idle paging by default.
+Each has an independent `--no-enable-*` flag. The LSP budget remains 10 seconds and
+paging size caps remain unset. Programmatic constructors stay opt-in; the historical
+milestones and frozen benchmark settings below retain their original configurations.
+
 Subscription inference is available through the shared ChatGPT transport integration;
 see [ChatGPT subscription setup](CHATGPT_SUBSCRIPTION.md). The isolated execution/telemetry
 runner has completed the [50-task control baseline](baselines/README.md).

@@ -13,9 +13,12 @@ The pager does not scan the repository to populate interfaces.
 .venv/Scripts/python.exe -m aider --model chatgpt/gpt-6.1-sol --enable-agent-nav --enable-l2-paging
 ```
 
-Both flags remain off by default. Navigation alone uses explicit transitions;
-adding paging enables idle demotion after two completed idle responses. All
-three optional file/token caps remain unset unless explicitly configured.
+CLI launches enable navigation, LSP ranking and idle paging by default. Use
+`--no-enable-l2-paging` to keep transitions explicit, and `--no-enable-agent-nav`
+or `--no-enable-lsp-graph` to disable those features independently. Programmatic
+constructors and pinned benchmark configurations remain opt-in. Idle demotion
+still waits for two completed idle responses; all three optional file/token caps
+remain unset unless explicitly configured.
 
 ## Replacement checks
 

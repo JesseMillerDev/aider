@@ -1,6 +1,8 @@
 # Milestone 1: optional semantic repo-map edges
 
-The LSP graph is implemented behind `--enable-lsp-graph` and remains off by default.
+The LSP graph is enabled by default for CLI launches. Use `--no-enable-lsp-graph`
+to disable it. Programmatic constructors remain opt-in so benchmark configurations
+do not inherit CLI defaults.
 The frozen [50-task baseline](baselines/README.md) is unchanged. The LSP-only treatment
 completed with 32/50 resolved (64%), matching control, and 2.32% more tokens; see
 [LSP_RUN.md](LSP_RUN.md#completed-result). No token-saving advantage was demonstrated.
@@ -73,7 +75,7 @@ covered by the same bounded fallback tests.
   sidecar Tree-sitter query. It converts UTF-8 byte columns to UTF-16 rather than searching for
   the first text occurrence of a name. The enabled tag cache also checks content hashes so
   preserved mtimes cannot retain stale source positions/tags.
-- `aider/args.py`, `aider/main.py` and `Coder` carry the default-off switch and positive timeout
+- `aider/args.py`, `aider/main.py` and `Coder` carry the feature switch and positive timeout
   through construction and coder cloning. The owning coder closes its server resources.
 
 For each syntactic referencer/definer/name edge, a resolved target in the definer receives
@@ -118,8 +120,9 @@ Protocol and server references:
 
 ## Next milestone
 
-Whole-file L1/L2 paging is implemented behind a separate default-off flag; see
-[context paging](CONTEXT_PAGER.md). Navigation, trace personalization, source windows and diagnostic
+Whole-file L1/L2 paging and explicit navigation are implemented and enabled for CLI
+launches; see [context paging](CONTEXT_PAGER.md) and
+[navigation](AGENT_NAVIGATION.md). Trace personalization, source windows and diagnostic
 reflection remain upcoming work. The treatment runner must explicitly build the treatment revision with server binaries
 and pass feature flags; the existing baseline builder intentionally still archives control revision
 `8400741ce7a9d26aecdbe97da423de5f3e80def1`.

@@ -1,6 +1,7 @@
 # Milestone 2: whole-file L1/L2 context paging
 
-The pager is opt-in and independent of LSP ranking. It retains complete editable source
+The pager is enabled by default for CLI launches and is independent of LSP ranking.
+Programmatic constructors remain opt-in. It retains complete editable source
 in L1, maintains read-only interfaces in L2, and excludes those files from the
 cold repository map. It does not introduce source windows, autonomous navigation actions,
 trace weighting or LSP diagnostic reflection.
@@ -15,7 +16,7 @@ manual L1/L2 transitions without enabling automatic idle paging.
 
 | Setting | Default | Meaning |
 |---|---:|---|
-| `--enable-l2-paging` | false | Enable automatic working-context management |
+| `--enable-l2-paging` | true | Enable automatic working-context management for CLI launches |
 | `--max-l1-tokens` | no cap | Optional cap for source-file blocks in working context |
 | `--max-l1-files` | no cap | Optional cap for whole working files |
 | `--max-l2-tokens` | no cap | Optional cap for the complete interface block, including instructions and filenames |

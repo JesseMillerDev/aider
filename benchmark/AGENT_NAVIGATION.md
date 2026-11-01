@@ -1,7 +1,8 @@
 # Explicit file navigation
 
-Enable navigation with `--enable-agent-nav`. It is off by default and does not
-require `--enable-l2-paging` or `--enable-lsp-graph`.
+Navigation is enabled by default for CLI launches; `--no-enable-agent-nav`
+disables it. Programmatic constructors remain opt-in. Navigation does not require
+`--enable-l2-paging` or `--enable-lsp-graph`.
 
 Navigation lets the assistant find a definition, inspect references, load source,
 or replace an eligible source file with its interface. It uses the existing model

@@ -280,7 +280,7 @@ def real_coder(path, **options):
     )
 
 
-def test_cli_and_default_off_prompt_and_commands(tmp_path, monkeypatch):
+def test_cli_defaults_on_and_programmatic_navigation_remains_opt_in(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     path = tmp_path / "a.py"
     path.write_text("def a(): # " + "implementation " * 200 + "\n    return 1\n")
@@ -297,8 +297,9 @@ def test_cli_and_default_off_prompt_and_commands(tmp_path, monkeypatch):
     assert enabled.commands.run("/page-l1 a.py") is None
     assert str(path) in enabled.abs_fnames
     parser = get_parser([], None)
-    assert not parser.parse_args([]).enable_agent_nav
+    assert parser.parse_args([]).enable_agent_nav
     assert parser.parse_args(["--enable-agent-nav"]).enable_agent_nav
+    assert not parser.parse_args(["--no-enable-agent-nav"]).enable_agent_nav
 
 
 def test_navigation_response_cannot_apply_mixed_edits_and_next_reply_can(tmp_path, monkeypatch):

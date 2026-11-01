@@ -284,10 +284,10 @@ def test_interface_order_and_cache_boundary_preserve_static_prefix():
     assert chunks.interfaces[-1]["content"][0]["cache_control"] == {"type": "ephemeral"}
 
 
-def test_cli_paging_is_opt_in_and_limits_are_positive(tmp_path):
+def test_cli_paging_defaults_on_and_limits_are_positive(tmp_path):
     parser = get_parser([], str(tmp_path))
     args = parser.parse_args([])
-    assert args.enable_l2_paging is False
+    assert args.enable_l2_paging is True
     assert (
         args.max_l1_tokens,
         args.max_l1_files,
