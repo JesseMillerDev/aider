@@ -364,6 +364,34 @@ def test_disabled_pager_leaves_prompt_messages_identical(tmp_path, monkeypatch):
     assert clone.abs_fnames == coder.abs_fnames
 
 
+@pytest.mark.parametrize(
+    "previous,status,errors,expected",
+    [("unknown", "clean", None, "clean"),
+     ("failed", "unknown", None, "failed"),
+     ("unknown", "failed", "lint failed", "failed")],
+)
+def test_manual_lint_records_observed_validation_for_pager(
+    tmp_path, monkeypatch, previous, status, errors, expected
+):
+    from types import SimpleNamespace
+
+    monkeypatch.chdir(tmp_path)
+    coder = real_coder(tmp_path, enable_l2_paging=True)
+    coder.repo = SimpleNamespace()
+    pager = coder.context_pager
+    pager.prepare(coder)
+    path = next(iter(coder.abs_fnames))
+    state = pager.states[path]
+    state.edited, state.lint = True, previous
+    coder.linter.last_status = status
+    with (patch.object(coder.linter, "lint", return_value=errors),
+          patch.object(coder.io, "confirm_ask", return_value=False)):
+        coder.commands.cmd_lint("")
+    assert state.lint == expected
+    if expected == "clean":
+        assert state.lint_digest == pager._digest(coder.io.read_text(path))
+
+
 def test_real_completed_responses_drive_ttl_without_model_calls(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     coder = real_coder(tmp_path, enable_l2_paging=True, l1_ttl_turns=2)

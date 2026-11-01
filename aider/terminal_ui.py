@@ -180,7 +180,7 @@ def show_context(io, coder, as_json=False):
     activity = [
         f"Paging {status['paging']}{policy}: "
         f"{status['pager_stats'].get('demotions', 0)} demotions, "
-        f"{status['pager_stats'].get('full_file_reloads', 0)} explicit loads/reloads. "
+        f"{status['pager_stats'].get('full_file_reloads', 0)} navigation loads/L2 reloads. "
         f"L2 in {status['pager_stats'].get('completed_requests_with_l2', 0)}/"
         f"{status['pager_stats'].get('completed_model_requests', 0)} completed requests.",
         f"LSP ranking {'on' if lsp['ranking_enabled'] else 'off'} · "

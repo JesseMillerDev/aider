@@ -421,6 +421,11 @@ class Commands:
                 self.io.tool_output(str(err))
                 continue
 
+            if self.coder.context_pager is not None:
+                self.coder.context_pager.record_lint(
+                    self.coder, fname, errors, self.coder.linter.last_status
+                )
+
             if not errors:
                 continue
 

@@ -17,7 +17,7 @@ Use `/status` to inspect:
 - Current full source (L1), interface summaries (L2), and read-only files.
 - Local source/interface token estimates and the pager's last observed state per file.
 - Pending work, failed validation, unchecked edits, idle age and rejected demotions.
-- Demotions, explicit loads/reloads, and completed main requests that contained L2.
+- Demotions, navigation loads/L2 reloads, and completed main requests that contained L2.
 - Observed bridge RPCs, unavailable servers, timeouts, and the latest semantic map's
   resolution counters, budget exhaustion events and elapsed time.
 - Successful, failed and empty navigation actions, malformed protocol responses,
@@ -46,6 +46,21 @@ inspection does not refresh its policy state. Session input/output counters reta
 Aider's existing accounting. Pager/navigation counters belong to the current coder;
 RPC counters belong to its current bridge, and map counters describe the latest map.
 Changing chat modes or models can construct new instances of these objects.
+
+The load/reload counter covers navigation loads and L2-to-L1 reloads. Ordinary
+filename-confirmation loads into L1 are not included; current L1 file count still
+includes those files. The display labels these operations explicitly.
+
+Edited files require an observed clean lint result before idle demotion. Aider's
+built-in TypeScript/TSX check returns unknown, so TypeScript projects need a real
+validator configured through `--lint-cmd`. Both automatic lint and manual `/lint`
+feed their observed outcomes to the pager. Unknown results preserve existing
+failures; generic shell output or a pasted passing test log does not establish a
+clean lint result.
+
+The manual-lint outcome integration passed 136 focused pager, linter, command and
+status checks, including clean results unblocking edited files, failed results
+being retained, and unknown results preserving an existing failure.
 
 ## Compatibility
 
