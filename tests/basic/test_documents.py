@@ -121,7 +121,9 @@ def test_workspace_tools_find_and_read_untracked_docs_without_edit_permission(co
     coder.ignore_mentions.add("docs/Game Design.docx")
     assert "previously declined" in nav.execute([("read_file", ["docs/Game Design.docx"])])
     Path("untracked.py").write_text("private_source = True\n")
-    assert "not a tracked" in nav.execute([("read_file", ["untracked.py"])])
+    assert "read-only reference" in nav.execute([("read_file", ["untracked.py"])])
+    assert str(Path("untracked.py").resolve()) in coder.abs_read_only_fnames
+    assert str(Path("untracked.py").resolve()) not in coder.abs_fnames
 
 
 def test_ambiguous_document_basename_requires_a_relative_path(coder):

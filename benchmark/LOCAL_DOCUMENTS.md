@@ -42,8 +42,8 @@ References load read-only without an extra confirmation prompt. Files already in
 editable context stay editable. Use `/add path` to make source files editable;
 DOCX references always remain read-only. Ambiguous or missing references report
 the problem instead of guessing. Email addresses are not references. Explicit
-user references allow loading untracked source files; the model's autonomous
-navigation still requires an explicit user load for those files.
+user references allow loading untracked source files. Autonomous navigation also
+loads non-ignored workspace source files directly; no manual attachment is needed.
 
 Bare DOCX filenames continue to work for compatibility.
 
@@ -66,7 +66,7 @@ estimates the extracted text rather than attempting to decode the archive as sou
 Autonomous navigation stays within the workspace and preserves ignored-path,
 declined-load, repository-metadata and symlink-escape protections. Untracked DOCX
 references can be read without granting edit permission. Untracked source code
-continues to require an explicit user load. Existing explicit user `/read-only`
+can be inspected or loaded into L1 through navigation. Existing explicit user `/read-only`
 commands retain their own path behavior.
 
 Extraction uses Python's standard library: no Word, Pandoc, installation download,

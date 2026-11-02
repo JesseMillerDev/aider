@@ -305,6 +305,10 @@ def get_parser(default_config_files, git_root):
         "--enable-agent-nav", action=argparse.BooleanOptionalAction, default=True,
         help="Allow up to three explicit file navigation actions per response (default: True)",
     )
+    group.add_argument(
+        "--max-agent-steps", type=positive_integer, default=None, metavar="N",
+        help="Optional agent-loop step limit per user turn (default: no cap)",
+    )
     for flag, default, help_text in (
         ("--max-l1-tokens", None, "Optional working source-file token cap"),
         ("--max-l1-files", None, "Optional working source-file count cap"),

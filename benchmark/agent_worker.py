@@ -379,6 +379,8 @@ def run(job_path):
 
             graph.prepare, graph.multiplier = prepare, multiplier
         coder.max_reflections = job["max_turns"]
+        # Preserve the benchmark's original initial request + reflection allowance.
+        coder.max_agent_steps = job["max_turns"] + 1
         original_get_edits = coder.get_edits
         original_lint = coder.lint_edited
         original_apply_updates = coder.apply_updates

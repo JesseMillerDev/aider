@@ -15,6 +15,7 @@ from urllib.parse import unquote, urlparse
 
 from aider.lsp_bridge import LSPBridge, locations as normalize_locations
 from aider.documents import is_docx
+from aider.utils import is_image_file
 
 ACTIONS = {"nav_def", "nav_refs", "page_l1", "demote_l2", "list_files", "read_file", "run_command"}
 FILE_MENTION = re.compile(
@@ -45,12 +46,18 @@ one fenced `aider-nav` block with up to three actions, one per line:
 /run_command git status --short
 ```
 Use only the actions you need. Edit directly when current files are sufficient.
+Discover and load repository files yourself with /list_files, /nav_def, /read_file
+or /page_l1. Do not ask the user to add, paste or attach files you can access in
+the workspace. /page_l1 loads full editable source; /read_file loads reference text.
+For an authorized implementation request, make reasonable local choices and work
+through implementation and verification. Ask only when missing information or a
+real restriction prevents progress, rather than asking for approval to begin.
 When asked about a local document, discover it with /list_files and load it with
 /read_file before asking the user to paste or upload it. Listing includes local
 untracked files. /read_file loads reference text read-only, including DOCX text
 and tables; embedded images and layout are not included. It does not grant edit
-permission. Untracked DOCX references can be read directly; untracked source
-files still require an explicit user load. Ignored, declined and outside-workspace
+permission. Both tracked and untracked workspace files can be loaded directly.
+Explicit read-only files remain read-only. Ignored, declined and outside-workspace
 paths remain inaccessible.
 You have terminal access via /run_command. Use it to inspect installed tools, run
 tests, and perform requested terminal work instead of claiming you cannot do so.
@@ -72,7 +79,8 @@ Page line numbers are location hints; whole files are loaded, without truncation
 Reference results say whether they are semantic or syntactic. Ambiguous symbols
 require a file and position. A navigation response cannot also edit files: wait
 for navigation results, then generate edits against the complete file contents.
-Navigation uses the existing response/reflection budget.
+Normal agent work is not limited by the classic three-repair reflection allowance.
+Continue until the user's request is complete or you encounter a real blocker.
 Demotion is refused when its complete interface does not reduce context tokens;
 keep short files full rather than repeatedly trying to demote them.
 """
@@ -195,12 +203,11 @@ class AgentNavigator:
             raise NavigationError("The requested path is ignored.")
         allowed = self._allowed()
         if not manual:
-            if path not in allowed and not (read_only and is_docx(path)):
-                raise NavigationError(
-                    "The path is not a tracked or already loaded repository file."
-                )
-            declined = self.coder.ignore_mentions
-            if str(path) in declined or relative.as_posix() in declined or path.name in declined:
+            declined = {str(value).replace("\\", "/").casefold()
+                        for value in self.coder.ignore_mentions}
+            names = {str(path).replace("\\", "/").casefold(),
+                     relative.as_posix().casefold(), path.name.casefold()}
+            if names & declined:
                 raise NavigationError("Loading this file was previously declined.")
         if not path.is_file():
             raise NavigationError("The requested file does not exist.")
@@ -350,6 +357,68 @@ class AgentNavigator:
                 except (NavigationError, OSError, ValueError) as err:
                     messages.append(f"Reference @{name} not loaded: {err}")
         return "\n".join(messages) or None
+
+    def load_response_files(self, content, include_docx=True, from_user=False):
+        """Rescue ordinary filename/attachment prose without asking for a user load."""
+        if RESTRICTIVE_REFERENCE.search(content):
+            return None
+        request = re.search(
+            r"\b(?:add|attach|upload|paste|load|read|inspect|open|need|provide|share)\b",
+            content, re.I,
+        )
+        if not from_user and not request and "```" not in content:
+            return None  # Completed summaries are not requests for more context.
+        file_word = r"\b[\w-]+\.[a-zA-Z][a-zA-Z0-9]{0,11}\b|\b(?:README|Makefile|Dockerfile)\b"
+        if not re.search(file_word, content):
+            return None
+        try:
+            files, complete = self.workspace_files()
+        except NavigationError:
+            return None  # Explicit navigation can surface the precise inventory failure.
+        if not complete:
+            return "File search incomplete; use /list_files with a narrower glob and load matches."
+        aliases = {}
+        for name in files:
+            for alias in {name, Path(name).name, str(self.root / name).replace("\\", "/")}:
+                aliases.setdefault(alias.casefold(), set()).add(name)
+        normalized = content.replace("\\", "/")
+        selected = set()
+        messages = []
+        for alias, matches in aliases.items():
+            if not re.search(r"(?<![\w/.:@-])" + re.escape(alias) + r"(?![\w/-]|\.[\w])",
+                             normalized, re.I):
+                continue
+            if len(matches) > 1:
+                messages.append("Ambiguous filename; inspect and select a relative path: "
+                                + ", ".join(sorted(matches)))
+            else:
+                selected.update(matches)
+        self.allowed = None
+        for name in sorted(selected):
+            try:
+                path = self._path(name)
+                if path in self.coder.abs_fnames or path in self.coder.abs_read_only_fnames:
+                    continue
+                if path in self.coder.l2_interface_fnames and not request:
+                    continue
+                if is_docx(path) and not include_docx:
+                    continue
+                if is_image_file(path):
+                    continue
+                source = self.coder.io.read_text(path, silent=True)
+                if source is None or "\x00" in source:
+                    continue
+                message = self._page(path)
+                messages.append(message)
+                self.coder.io.tool_output(message)
+            except (NavigationError, OSError, ValueError):
+                # Preserve ignored/declined/outside/read-only restrictions without
+                # turning a mention into another permission request.
+                continue
+        if messages:
+            return ("\n".join(messages) + "\nInspect the current full file contents and continue "
+                    "the user's request; do not ask the user to attach these workspace files.")
+        return None
 
     def _inventory(self):
         from grep_ast import filename_to_lang

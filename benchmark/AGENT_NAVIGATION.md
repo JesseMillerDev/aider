@@ -5,8 +5,10 @@ disables it. Programmatic constructors remain opt-in. Navigation does not requir
 `--enable-l2-paging` or `--enable-lsp-graph`.
 
 Navigation lets the assistant find a definition, inspect references, load source,
-or replace an eligible source file with its interface. It uses the existing model
-response/reflection limits. One response can contain at most three actions.
+or replace an eligible source file with its interface. One response can contain at
+most three actions. Agent turns have no default step cap; `--max-agent-steps N`
+sets an explicit limit. The classic three-reflection repair allowance applies to
+classic mode with navigation disabled, rather than normal agent/tool work.
 
 ````text
 ```aider-nav
@@ -54,8 +56,8 @@ syntax fallback: Python AST, or RepoMap's Tree-sitter queries for other supporte
 languages. Fallback results are explicitly labeled as name matches, rather than
 proof of semantic identity. A partial index cannot establish a unique definition.
 
-Autonomous source reads are limited to tracked or already loaded repository files.
-Untracked DOCX documents can be loaded as read-only references. Explicit user
+Autonomous source reads include tracked and untracked files within the workspace.
+DOCX documents load as read-only references. Explicit user
 mentions discover unique local DOCX names before the next request; see
 [local documents](LOCAL_DOCUMENTS.md) for extraction fidelity and limits.
 Ignored files, repository metadata, paths outside the root, symlink escapes, and
@@ -66,10 +68,19 @@ approval (or YOLO); shell execution can access installed programs and is not
 restricted to navigation's file inventory. See [interactive CLI](INTERACTIVE_CLI.md)
 for steering input, timeout and output handling.
 
+The model should discover and load files itself. If it still replies with a request
+to attach a known workspace file, the harness resolves absolute paths, relative
+paths and unique basenames, loads full source into L1, and continues without a
+confirmation round trip. Ambiguous basenames return candidate paths for the model
+to resolve. Ordinary summary mentions do not warm files already in L2; explicit
+requests for their contents can reload them. This fallback does not promote files
+the user explicitly loaded read-only or bypass ignored/declined path rules.
+
 ## Interaction with paging
 
 Navigation never preloads imports. With navigation alone, file transitions are
-explicit actions and there is no TTL demotion. Enabling `--enable-l2-paging`
+explicit actions or resolved filename mentions, and there is no TTL demotion.
+Enabling `--enable-l2-paging`
 also enables idle-file demotion, while dependency loading stays explicit.
 Optional size caps remain opt-in in either mode.
 

@@ -103,7 +103,7 @@ def test_navigation_audit_distinguishes_success_failure_and_empty_results(tmp_pa
     assert nav.stats == {"attempted": 3, "succeeded": 1, "failed": 1, "empty": 1}
     assert [event["status"] for event in nav.events] == ["succeeded", "failed", "empty"]
     assert paths["b.py"] in coder.abs_fnames
-    assert "not a tracked" in nav.events[1]["detail"]
+    assert "does not exist" in nav.events[1]["detail"]
     for _ in range(10):
         nav.handle(block("/page_l1 b.py"))
     assert len(nav.events) == 8
@@ -269,7 +269,7 @@ def test_scope_declines_and_readonly_are_respected(tmp_path):
     coder, nav, paths = setup(tmp_path)
     assert "limited to this repository" in nav.handle(block("/page_l1 ../secret.py"))
     (tmp_path / "unknown.py").write_text("secret = 1\n")
-    assert "not a tracked" in nav.handle(block("/page_l1 unknown.py"))
+    assert "complete file" in nav.handle(block("/page_l1 unknown.py"))
     assert "complete file" in nav.execute([("page_l1", ["unknown.py"])], manual=True)
     coder.ignore_mentions.add("b.py")
     assert "previously declined" in nav.handle(block("/page_l1 b.py"))

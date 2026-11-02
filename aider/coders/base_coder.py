@@ -182,6 +182,7 @@ class Coder:
                 total_tokens_sent=from_coder.total_tokens_sent,
                 total_tokens_received=from_coder.total_tokens_received,
                 file_watcher=from_coder.file_watcher,
+                max_agent_steps=from_coder.max_agent_steps,
             )
             use_kwargs.update(update)  # override to complete the switch
             use_kwargs.update(kwargs)  # override passed kwargs
@@ -352,6 +353,7 @@ class Coder:
         max_l2_tokens=None,
         l1_ttl_turns=2,
         enable_agent_nav=False,
+        max_agent_steps=None,
     ):
         # Fill in a dummy Analytics if needed, but it is never .enable()'d
         self.analytics = analytics if analytics is not None else Analytics()
@@ -406,6 +408,14 @@ class Coder:
         self.abs_read_only_fnames = set()
         self.context_pager = None
         self.agent_navigator = None
+        if max_agent_steps is not None and (
+            isinstance(max_agent_steps, bool) or not isinstance(max_agent_steps, int)
+            or max_agent_steps <= 0
+        ):
+            raise ValueError("max_agent_steps must be a positive integer or None")
+        self.max_agent_steps = max_agent_steps
+        self.num_agent_steps = 0
+        self.last_agent_steps = 0
         self.l2_interface_fnames = set()
         self.add_gitignore_files = add_gitignore_files
 
@@ -934,6 +944,7 @@ class Coder:
         self.aider_edited_files = set()
         self.reflected_message = None
         self.num_reflections = 0
+        self.num_agent_steps = 0
         self.lint_outcome = None
         self.test_outcome = None
         self.shell_commands = []
@@ -1009,10 +1020,14 @@ class Coder:
             notice = "\n".join(value for value in notices if value)
             if notice:
                 inp += "\n\nLocal file lookup:\n" + notice
-        if self.agent_navigator is not None and ".docx" in mention_content.lower():
-            self.check_for_file_mentions(mention_content, include_docx=False)
+        if self.agent_navigator is not None:
+            feedback = self.check_for_file_mentions(
+                mention_content, include_docx=".docx" not in mention_content.lower(), from_user=True
+            )
         else:
-            self.check_for_file_mentions(mention_content)
+            feedback = self.check_for_file_mentions(mention_content)
+        if self.agent_navigator is not None and feedback:
+            inp += "\n\nLocal file lookup:\n" + feedback
         inp = self.check_for_urls(inp)
 
         return inp
@@ -1026,6 +1041,15 @@ class Coder:
             message = user_message
 
         while message:
+            if self.agent_navigator is not None:
+                if (self.max_agent_steps is not None
+                        and self.num_agent_steps >= self.max_agent_steps):
+                    self.io.tool_warning(
+                        f"Agent step limit ({self.max_agent_steps}) reached, stopping."
+                    )
+                    return
+                self.num_agent_steps += 1
+                self.last_agent_steps = self.num_agent_steps
             self.reflected_message = None
             if self.io.steering is not None:
                 self.io.steering.resume()
@@ -1041,6 +1065,7 @@ class Coder:
             if steering:
                 # Explicit user input starts a fresh reflection allowance.
                 self.num_reflections = 0
+                self.num_agent_steps = 0
                 message = "\n\n".join(steering)
                 if self.reflected_message:
                     message = self.reflected_message + "\n\nUser steering:\n" + message
@@ -1049,7 +1074,8 @@ class Coder:
             if not self.reflected_message:
                 break
 
-            if self.num_reflections >= self.max_reflections:
+            if (self.agent_navigator is None
+                    and self.num_reflections >= self.max_reflections):
                 self.io.tool_warning(f"Only {self.max_reflections} reflections allowed, stopping.")
                 return
 
@@ -1968,7 +1994,11 @@ class Coder:
 
         return mentioned_rel_fnames
 
-    def check_for_file_mentions(self, content, include_docx=True):
+    def check_for_file_mentions(self, content, include_docx=True, from_user=False):
+        if self.agent_navigator is not None:
+            return self.agent_navigator.load_response_files(
+                content, include_docx=include_docx, from_user=from_user
+            )
         mentioned_rel_fnames = self.get_file_mentions(content)
         if not include_docx:
             mentioned_rel_fnames = {name for name in mentioned_rel_fnames if not is_docx(name)}

@@ -12,6 +12,26 @@ prompts, including explicit shell-command approvals, and uses defaults for text
 questions. Ordinary `--yes-always` retains its restriction on explicit approvals.
 DOCX references remain read-only and navigation retains its workspace rules.
 
+## Repository discovery and continuing work
+
+The agent discovers and loads repository files itself. Both tracked and untracked
+workspace source are available through navigation, subject to ignored, declined,
+outside-workspace and explicit read-only restrictions. If a response still asks
+the user to add local files, the harness resolves the named absolute/relative
+paths or unique basenames, loads complete source and continues automatically.
+`@file_name` remains useful for directing attention, rather than a prerequisite
+for the agent to inspect repository files.
+
+Upstream Aider's three-reflection limit bounded follow-up model requests in its
+edit-repair loop. Reusing it for navigation/terminal work stopped ordinary agent
+tasks after an initial response and three follow-ups. Agent mode now continues
+without that default cap. `--max-agent-steps N` optionally limits loop steps per
+user turn, and `/status` reports usage and the configured limit. One model response
+can request up to three actions; that batch size is independent of the turn limit.
+The counter measures agent-loop steps, rather than a token or billing budget.
+Steering starts a fresh turn allowance. Classic mode retains its existing repair
+limit. Benchmark jobs explicitly retain their original turn allowance.
+
 ## Type while the agent works
 
 In an interactive terminal with fancy input enabled, the input line stays
@@ -72,7 +92,7 @@ chain continues; a failing executable prevents the launch portion of the chain.
 
 Suggested shell-command sequences stop at the first nonzero exit code, including
 later shell blocks in the same response. If the command output is shared with the
-agent, the failure enters the existing bounded reflection loop so it can correct
+agent, the failure returns to the agent loop so it can correct
 the problem. YOLO shares the output automatically; normal mode keeps the sharing
 confirmation.
 
@@ -81,7 +101,7 @@ Default timeout is 120 seconds; `/run_command --timeout=600 ...` overrides it up
 3600 seconds. Timeout/interrupt cleanup terminates the spawned process tree.
 Output over 24,000 bytes shows the first and last 12,000 bytes with an explicit
 shortening notice. Command output is captured locally rather than loaded as an
-editable file. Actions use the existing reflection and three-action response limits.
+editable file. Actions use the agent loop and the three-action response limit.
 Terminal runtime and confirmation time do not consume the batch's navigation budget.
 
 For example, ask: "Locate my installed Godot .NET editor and open this repository
@@ -118,3 +138,16 @@ passed 184 tests and 29 subtests, with two optional language-server skips. The
 export/launch checks use temporary stand-ins, including `pythonw.exe`, without
 building or launching the user's game. The quoted-preset test checks both CMD
 and the explicit PowerShell terminal action.
+
+The autonomy regression selection passed 318 tests and 29 subtests with two skips.
+After refining summary handling and preserving the last turn's counter across
+`/status`, the final focused selection passed 87 tests and 29 subtests. These
+selections overlap. Coverage includes automatic absolute/relative filename loads,
+untracked source, ambiguity, read-only/ignored/declined scope, cold L2 summary
+mentions, continuation past three reflections, explicit step caps, CLI wiring,
+clone inheritance and classic-mode compatibility.
+
+A read-only smoke check in the actual BattleGame repository automatically loaded
+`Scripts/Battlefield.cs` and `Scripts/Battalion.cs` into full source context
+(14,174 characters including context formatting). It required zero confirmation
+prompts and zero provider requests; both file hashes and Git status were unchanged.

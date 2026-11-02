@@ -1003,6 +1003,7 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
             lsp_timeout=args.lsp_timeout,
             enable_l2_paging=args.enable_l2_paging,
             enable_agent_nav=args.enable_agent_nav,
+            max_agent_steps=args.max_agent_steps,
             max_l1_tokens=args.max_l1_tokens,
             max_l1_files=args.max_l1_files,
             max_l2_tokens=args.max_l2_tokens,

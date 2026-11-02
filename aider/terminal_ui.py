@@ -42,6 +42,8 @@ def session_status(coder):
         "branch": clean(branch),
         "edit_format": coder.edit_format,
         "yolo": bool(getattr(coder.io, "yolo", False)),
+        "agent_steps": getattr(coder, "last_agent_steps", 0),
+        "max_agent_steps": getattr(coder, "max_agent_steps", None),
         "l1_files": len(coder.abs_fnames),
         "l2_files": len(coder.l2_interface_fnames),
         "read_only_files": len(coder.abs_read_only_fnames),
@@ -207,6 +209,10 @@ def show_context(io, coder, as_json=False):
          f"{navigation.get('invalid_responses', 0)} malformed responses."
          if navigation is not None else "Navigation off."),
     ]
+    if navigation is not None:
+        limit = status["max_agent_steps"]
+        activity.append(f"Agent loop: {status['agent_steps']} steps in the last model turn; "
+                        + (f"limit {limit}." if limit is not None else "no step cap."))
     files = Table(box=None, expand=True, padding=(0, 1))
     for name in ("Level", "File", "~tokens", "Observed state"):
         files.add_column(name, overflow="fold", style="dim" if name == "Observed state" else None)
